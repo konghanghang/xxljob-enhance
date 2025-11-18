@@ -137,7 +137,7 @@
 
 ### Phase 5: 角色管理模块
 
-- [ ] **7. 实现角色管理功能**
+- [x] **7. 实现角色管理功能**
     - [x] 7.1. 创建 RolesService
         - *Goal*: 实现角色 CRUD 和权限配置
         - *Details*: 实现 `create`, `findAll`, `findOne`, `update`, `remove`, `setJobPermission`, `getRolePermissions`
@@ -148,9 +148,9 @@
         - *Details*: 实现 GET/POST/PATCH/DELETE `/roles` 接口，`POST /roles/:id/permissions`（配置任务权限），使用 AdminGuard
         - *Files*: `backend/src/roles/roles.controller.ts`
         - *Requirements*: US-005
-    - [ ] 7.3. 创建角色相关 DTO
+    - [x] 7.3. 创建角色相关 DTO
         - *Goal*: 验证请求参数
-        - *Details*: CreateRoleDto, UpdateRoleDto, RoleDto, SetPermissionsDto（包含 jobId, canView, canExecute, canEdit）
+        - *Details*: CreateRoleDto, UpdateRoleDto, RoleResponseDto, SetJobPermissionDto, BatchSetPermissionsDto
         - *Files*: `backend/src/roles/dto/*.dto.ts`
         - *Requirements*: US-005, Design - Roles Module
 
