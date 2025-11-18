@@ -1,4 +1,9 @@
 import { Module } from '@nestjs/common';
+import { HealthController } from './health.controller';
+import { XxljobModule } from '../xxljob/xxljob.module';
 
-@Module({})
+@Module({
+  imports: [XxljobModule],
+  controllers: [HealthController],
+})
 export class HealthModule {}
