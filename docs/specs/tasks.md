@@ -116,7 +116,7 @@
 
 ### Phase 4: 用户管理模块
 
-- [ ] **6. 实现用户管理功能**
+- [x] **6. 实现用户管理功能**
     - [x] 6.1. 创建 UsersService
         - *Goal*: 实现用户 CRUD 操作
         - *Details*: 实现 `create`（密码 bcrypt 加密）, `findAll`, `findOne`, `update`, `remove`, `assignRoles`, `getUserRoles`
@@ -127,9 +127,9 @@
         - *Details*: 实现 GET/POST/PATCH/DELETE `/users` 接口，`POST /users/:id/roles`（分配角色），使用 AdminGuard
         - *Files*: `backend/src/users/users.controller.ts`
         - *Requirements*: US-007
-    - [ ] 6.3. 创建用户相关 DTO
+    - [x] 6.3. 创建用户相关 DTO
         - *Goal*: 验证请求参数
-        - *Details*: CreateUserDto, UpdateUserDto, UserDto（不包含密码字段）
+        - *Details*: CreateUserDto, UpdateUserDto, UserResponseDto（不包含密码字段）, AssignRolesDto
         - *Files*: `backend/src/users/dto/*.dto.ts`
         - *Requirements*: US-007, Design - Users Module
 
