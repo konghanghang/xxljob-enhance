@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { XxljobModule } from './xxljob/xxljob.module';
 import { JobsModule } from './jobs/jobs.module';
+import { AuditModule } from './audit/audit.module';
 import { envValidationSchema } from './config/env.validation';
 
 @Module({
@@ -25,6 +26,7 @@ import { envValidationSchema } from './config/env.validation';
     RolesModule,
     XxljobModule,
     JobsModule,
+    AuditModule,
   ],
   controllers: [AppController],
   providers: [AppService],
