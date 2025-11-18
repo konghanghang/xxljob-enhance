@@ -54,7 +54,7 @@
 
 ### Phase 2: 认证模块
 
-- [ ] **4. 实现用户认证和 JWT**
+- [x] **4. 实现用户认证和 JWT**
     - [x] 4.1. 安装认证相关依赖
         - *Goal*: 集成 Passport 和 JWT
         - *Details*: 安装 `@nestjs/passport`, `@nestjs/jwt`, `passport`, `passport-jwt`, `bcrypt`, `@types/bcrypt`
@@ -65,22 +65,22 @@
         - *Details*: 实现 `validateUser`（bcrypt.compare）, `login`（JWT 签发）, `verifyToken` 方法
         - *Files*: `backend/src/auth/auth.service.ts`
         - *Requirements*: US-001, NFR-002（bcrypt cost factor 10）
-    - [ ] 4.3. 创建 JWT Strategy
+    - [x] 4.3. 创建 JWT Strategy
         - *Goal*: 实现 JWT Token 验证
         - *Details*: 继承 `PassportStrategy(Strategy)`，实现 `validate` 方法从 Token 提取用户信息
         - *Files*: `backend/src/auth/strategies/jwt.strategy.ts`
         - *Requirements*: US-001, NFR-002（1小时过期）
-    - [ ] 4.4. 创建 JwtAuthGuard
+    - [x] 4.4. 创建 JwtAuthGuard
         - *Goal*: 保护需要认证的路由
         - *Details*: 继承 `AuthGuard('jwt')`，可以全局或局部使用
         - *Files*: `backend/src/auth/guards/jwt-auth.guard.ts`
         - *Requirements*: US-001, NFR-002
-    - [ ] 4.5. 创建 AuthController（登录、刷新 Token）
+    - [x] 4.5. 创建 AuthController（登录、刷新 Token）
         - *Goal*: 提供认证 API
         - *Details*: 实现 `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` 接口
         - *Files*: `backend/src/auth/auth.controller.ts`
         - *Requirements*: US-001
-    - [ ] 4.6. 创建 DTO（LoginDto, RefreshTokenDto, LoginResponseDto）
+    - [x] 4.6. 创建 DTO（LoginDto, RefreshTokenDto, LoginResponseDto）
         - *Goal*: 验证请求参数和响应格式
         - *Details*: 使用 class-validator 装饰器验证用户名（MinLength 3）和密码（MinLength 6）
         - *Files*: `backend/src/auth/dto/*.dto.ts`
@@ -90,7 +90,7 @@
 
 ### Phase 3: 权限核心模块
 
-- [ ] **5. 实现 PermissionsService（核心权限逻辑）**
+- [x] **5. 实现 PermissionsService（核心权限逻辑）**
     - [x] 5.1. 创建 PermissionsService
         - *Goal*: 实现权限查询和计算逻辑
         - *Details*: 实现 `getUserJobPermissions`（OR 逻辑合并角色权限）, `getUserVisibleJobIds`, `checkPermission`, `getUserAllPermissions`
@@ -99,17 +99,17 @@
     - [x] 5.2. 创建 JobPermissionGuard
         - *Goal*: 验证用户对任务的操作权限
         - *Details*: 实现 `canActivate`，检查管理员绕过，调用 PermissionsService，根据装饰器元数据判断所需权限
-        - *Files*: `backend/src/guards/job-permission.guard.ts`
+        - *Files*: `backend/src/permissions/guards/job-permission.guard.ts`
         - *Requirements*: US-003, US-004, NFR-002（权限验证）
-    - [ ] 5.3. 创建 RequirePermission 装饰器
+    - [x] 5.3. 创建 RequirePermission 装饰器
         - *Goal*: 声明接口所需权限
         - *Details*: 使用 SetMetadata 定义装饰器，接受 PermissionAction 参数（VIEW/EXECUTE/EDIT）
-        - *Files*: `backend/src/decorators/require-permission.decorator.ts`
+        - *Files*: `backend/src/permissions/decorators/require-permission.decorator.ts`
         - *Requirements*: Design - Security Design
-    - [ ] 5.4. 创建 AdminGuard
+    - [x] 5.4. 创建 AdminGuard
         - *Goal*: 验证用户是否为管理员
         - *Details*: 检查 `request.user.isAdmin` 字段，非管理员返回 403
-        - *Files*: `backend/src/guards/admin.guard.ts`
+        - *Files*: `backend/src/permissions/guards/admin.guard.ts`
         - *Requirements*: US-005, US-006, US-007, NFR-002
 
 ---
