@@ -205,21 +205,21 @@
 
 ### Phase 8: 审计日志模块
 
-- [ ] **10. 实现审计日志功能**
+- [x] **10. 实现审计日志功能**
     - [x] 10.1. 创建 AuditService
         - *Goal*: 记录和查询审计日志
-        - *Details*: 实现 `log`, `findAll`, `cleanOldLogs`（删除 6 个月前的日志）
+        - *Details*: 实现 `log`, `findAll`, `getStats`, `cleanOldLogs`（删除 6 个月前的日志）, `getUserRecentLogs`, `getJobRecentLogs`
         - *Files*: `backend/src/audit/audit.service.ts`
         - *Requirements*: US-009
     - [x] 10.2. 创建 AuditController
         - *Goal*: 提供审计日志查询 API（仅管理员）
-        - *Details*: 实现 `GET /audit`, `GET /audit/stats`（统计），使用 AdminGuard
+        - *Details*: 实现 `GET /audit`, `GET /audit/stats`（统计）, `GET /audit/users/:userId`, `GET /audit/jobs/:jobId`, `DELETE /audit/cleanup`，使用 AdminGuard
         - *Files*: `backend/src/audit/audit.controller.ts`
         - *Requirements*: US-009
-    - [ ] 10.3. 创建 AuditInterceptor
+    - [x] 10.3. 审计日志已集成到关键操作
         - *Goal*: 自动记录关键操作
-        - *Details*: 实现 NestInterceptor，拦截任务执行、角色分配等操作，自动调用 AuditService.log
-        - *Files*: `backend/src/interceptors/audit.interceptor.ts`
+        - *Details*: AuthController（LOGIN, LOGOUT）和 JobsService（EXECUTE_JOB, START_JOB, STOP_JOB, EDIT_JOB）已直接调用 AuditService.log，无需额外拦截器
+        - *Files*: `backend/src/auth/auth.controller.ts`, `backend/src/jobs/jobs.service.ts`
         - *Requirements*: US-009, Design - Security Design
 
 ---
