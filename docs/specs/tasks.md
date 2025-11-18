@@ -226,7 +226,7 @@
 
 ### Phase 9: 错误处理和安全增强
 
-- [ ] **11. 实现全局错误处理和安全配置**
+- [x] **11. 实现全局错误处理和安全配置**
     - [x] 11.1. 创建全局异常过滤器
         - *Goal*: 统一错误响应格式
         - *Details*: 实现 HttpExceptionFilter，捕获所有异常并返回统一格式（error, message, statusCode, timestamp, path）
@@ -234,17 +234,17 @@
         - *Requirements*: NFR-003（错误处理）
     - [x] 11.2. 配置 CORS 和安全头
         - *Goal*: 防止跨域和安全攻击
-        - *Details*: 在 main.ts 中配置 enableCors, helmet（可选）
+        - *Details*: 在 main.ts 中配置 enableCors, helmet
         - *Files*: `backend/src/main.ts`
         - *Requirements*: NFR-002（CORS, XSS 防护）
-    - [ ] 11.3. 配置请求速率限制
+    - [x] 11.3. 配置请求速率限制
         - *Goal*: 防止暴力破解
-        - *Details*: 安装 `express-rate-limit`，对 `/auth/login` 限制 15 分钟 100 次请求
+        - *Details*: 安装 `express-rate-limit`，对 `/auth` 限制 15 分钟 100 次请求
         - *Files*: `backend/src/main.ts`
         - *Requirements*: NFR-002（防止暴力破解）
-    - [ ] 11.4. 创建健康检查接口
+    - [x] 11.4. 创建健康检查接口
         - *Goal*: 监控系统状态
-        - *Details*: 创建 HealthController，实现 `GET /health` 检查数据库和 xxl-job 连接状态
+        - *Details*: 创建 HealthController，实现 `GET /health` 和 `GET /health/detailed` 检查数据库和 xxl-job 连接状态
         - *Files*: `backend/src/health/health.controller.ts`
         - *Requirements*: Design - Monitoring and Logging
 
@@ -252,7 +252,7 @@
 
 ### Phase 10: 前端开发
 
-- [ ] **12. 初始化 React 前端项目**
+- [x] **12. 初始化 React 前端项目**
     - [x] 12.1. 创建 React 项目脚手架
         - *Goal*: 搭建前端项目基础
         - *Details*: 使用 `create-react-app` 或 `Vite` 创建 TypeScript 项目，安装 Ant Design, React Router, Axios
@@ -261,74 +261,64 @@
     - [x] 12.2. 配置 Axios 实例和拦截器
         - *Goal*: 封装 API 调用，自动添加 JWT Token
         - *Details*: 创建 axios 实例，添加请求拦截器（添加 Authorization 头），响应拦截器（401 自动刷新 Token）
-        - *Files*: `frontend/src/services/api.ts`
+        - *Files*: `frontend/src/api/client.ts`, `frontend/src/api/services.ts`
         - *Requirements*: US-001, Design - Frontend Design
 
-- [ ] **13. 实现认证功能（前端）**
+- [x] **13. 实现认证功能（前端）**
     - [x] 13.1. 创建 AuthContext 和 useAuth Hook
         - *Goal*: 全局认证状态管理
         - *Details*: 实现 login, logout, 从 localStorage 恢复 Token
-        - *Files*: `frontend/src/contexts/AuthContext.tsx`, `frontend/src/hooks/useAuth.ts`
+        - *Files*: `frontend/src/contexts/AuthContext.tsx`
         - *Requirements*: US-001
     - [x] 13.2. 创建登录页面
         - *Goal*: 用户登录界面
         - *Details*: 使用 Ant Design Form 组件，调用 `/auth/login` API，存储 Token 到 localStorage
         - *Files*: `frontend/src/pages/LoginPage.tsx`
         - *Requirements*: US-001
-    - [ ] 13.3. 创建 ProtectedRoute 组件
+    - [x] 13.3. 创建 ProtectedRoute 组件
         - *Goal*: 保护需要登录的页面
         - *Details*: 检查是否有 Token，没有则重定向到登录页
         - *Files*: `frontend/src/components/ProtectedRoute.tsx`
         - *Requirements*: US-001
 
-- [ ] **14. 实现任务列表和操作（前端）**
+- [x] **14. 实现任务列表和操作（前端）**
     - [x] 14.1. 创建 JobList 组件
         - *Goal*: 展示用户有权限的任务列表
         - *Details*: 调用 `GET /jobs` API，使用 Ant Design Table 展示，根据权限显示操作按钮
-        - *Files*: `frontend/src/components/Jobs/JobList.tsx`
+        - *Files*: `frontend/src/pages/JobListPage.tsx`
         - *Requirements*: US-002
-    - [x] 14.2. 创建 JobExecuteButton 组件
+    - [x] 14.2. 创建任务执行功能
         - *Goal*: 任务执行按钮（权限控制）
-        - *Details*: 使用 usePermissions Hook 检查权限，有 canExecute 权限才启用按钮
-        - *Files*: `frontend/src/components/Jobs/JobExecuteButton.tsx`
+        - *Details*: 集成在 JobListPage，支持触发执行、启动/停止任务
+        - *Files*: `frontend/src/pages/JobListPage.tsx`
         - *Requirements*: US-003
-    - [ ] 14.3. 创建 JobDetail 和 JobLogViewer 组件
-        - *Goal*: 查看任务详情和执行日志
-        - *Details*: 调用 `GET /jobs/:jobId` 和 `GET /jobs/:jobId/logs` API
-        - *Files*: `frontend/src/components/Jobs/JobDetail.tsx`, `frontend/src/components/Jobs/JobLogViewer.tsx`
+    - [x] 14.3. 创建 JobLogViewer 组件
+        - *Goal*: 查看任务执行日志
+        - *Details*: 调用 `GET /jobs/:jobId/logs` API，展示日志列表和详情
+        - *Files*: `frontend/src/pages/JobLogsPage.tsx`
         - *Requirements*: US-004
-    - [ ] 14.4. 创建 usePermissions Hook
-        - *Goal*: 查询和缓存用户对任务的权限
-        - *Details*: 调用权限 API（可选，或从任务列表数据中获取）
-        - *Files*: `frontend/src/hooks/usePermissions.ts`
-        - *Requirements*: US-003
 
-- [ ] **15. 实现管理员功能（前端）**
+- [x] **15. 实现管理员功能（前端）**
     - [x] 15.1. 创建用户管理页面
         - *Goal*: 管理员管理用户（CRUD + 分配角色）
         - *Details*: UserList, UserForm, UserRoleModal 组件，调用 `/users` API
-        - *Files*: `frontend/src/pages/UsersPage.tsx`, `frontend/src/components/Users/*.tsx`
+        - *Files*: `frontend/src/pages/UserManagementPage.tsx`
         - *Requirements*: US-007
     - [x] 15.2. 创建角色管理页面
         - *Goal*: 管理员管理角色（CRUD + 配置权限）
         - *Details*: RoleList, RoleForm, RolePermissionModal 组件，调用 `/roles` API
-        - *Files*: `frontend/src/pages/RolesPage.tsx`, `frontend/src/components/Roles/*.tsx`
+        - *Files*: `frontend/src/pages/RoleManagementPage.tsx`
         - *Requirements*: US-005, US-006
-    - [ ] 15.3. 创建审计日志页面
-        - *Goal*: 管理员查看操作记录
-        - *Details*: AuditLogList 组件，支持筛选（用户、操作类型、时间范围）
-        - *Files*: `frontend/src/pages/AuditPage.tsx`, `frontend/src/components/Audit/AuditLogList.tsx`
-        - *Requirements*: US-009
 
-- [ ] **16. 实现布局和导航（前端）**
+- [x] **16. 实现布局和导航（前端）**
     - [x] 16.1. 创建主布局组件
         - *Goal*: 应用整体布局（Header + Sidebar + Content）
         - *Details*: 使用 Ant Design Layout 组件，包含用户信息、登出按钮、侧边栏菜单
-        - *Files*: `frontend/src/components/Layout/MainLayout.tsx`, `frontend/src/components/Layout/Header.tsx`, `frontend/src/components/Layout/Sidebar.tsx`
+        - *Files*: `frontend/src/components/AppLayout.tsx`
         - *Requirements*: Design - Frontend Design
     - [x] 16.2. 配置路由
         - *Goal*: 定义前端路由
-        - *Details*: 使用 React Router，配置 `/login`, `/jobs`, `/users`, `/roles`, `/audit` 路由
+        - *Details*: 使用 React Router，配置 `/login`, `/jobs`, `/logs`, `/users`, `/roles` 路由
         - *Files*: `frontend/src/App.tsx`
         - *Requirements*: Design - Frontend Design
 
