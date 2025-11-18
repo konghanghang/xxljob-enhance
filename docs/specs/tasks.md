@@ -158,7 +158,7 @@
 
 ### Phase 6: xxl-job API 集成
 
-- [ ] **8. 实现 xxl-job API 调用**
+- [x] **8. 实现 xxl-job API 调用**
     - [x] 8.1. 安装 Axios
         - *Goal*: 用于 HTTP 请求
         - *Details*: 安装 `axios`
@@ -166,17 +166,17 @@
         - *Requirements*: US-010
     - [x] 8.2. 创建 XxlJobService
         - *Goal*: 封装 xxl-job API 调用
-        - *Details*: 实现 `login`（维护会话 Cookie）, `getJobList`, `getJobDetail`, `triggerJob`, `getJobLog`, `updateJob`, `startJob`, `stopJob`
+        - *Details*: 实现 `login`（维护会话 Cookie）, `getJobList`, `getJobGroups`, `triggerJob`, `getJobLogs`, `updateJob`, `startJob`, `stopJob`, `healthCheck`
         - *Files*: `backend/src/xxljob/xxljob.service.ts`
         - *Requirements*: US-010, Design - XxlJob Module
-    - [ ] 8.3. 创建 xxl-job 数据类型定义
+    - [x] 8.3. 创建 xxl-job 数据类型定义
         - *Goal*: 定义 xxl-job API 返回的数据结构
-        - *Details*: 定义 XxlJob, XxlJobLog, XxlJobPageResult 接口
+        - *Details*: 定义 XxlJob, XxlJobLog, XxlJobPageResult, XxlJobGroup, TriggerJobRequest, UpdateJobRequest 接口
         - *Files*: `backend/src/xxljob/interfaces/xxljob.interface.ts`
         - *Requirements*: Design - XxlJob Module
-    - [ ] 8.4. 实现 xxl-job 会话管理（OnModuleInit）
+    - [x] 8.4. 实现 xxl-job 会话管理（OnModuleInit）
         - *Goal*: 应用启动时自动登录 xxl-job
-        - *Details*: 在 XxlJobService 中实现 OnModuleInit，调用 login 方法
+        - *Details*: 在 XxlJobService 中实现 OnModuleInit，调用 login 方法，添加 Axios 拦截器自动重新登录
         - *Files*: `backend/src/xxljob/xxljob.service.ts`
         - *Requirements*: US-010
 
