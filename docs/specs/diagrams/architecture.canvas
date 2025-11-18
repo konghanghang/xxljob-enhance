@@ -1,0 +1,40 @@
+{
+	"nodes":[
+		{"id":"static-header","type":"text","text":"## 静态区域 (Static Section)\n系统组件架构","x":-900,"y":-500,"width":400,"height":100,"color":"6"},
+		{"id":"frontend","type":"text","text":"### React Frontend\n**file:** `frontend/src/`\n\n**职责:** 用户界面层\n- 任务列表展示（权限过滤）\n- 用户/角色管理界面\n- 审计日志查看\n\n**关键组件:**\n- `JobList.tsx` - 任务列表\n- `UserManagement.tsx` - 用户管理\n- `RoleManagement.tsx` - 角色管理\n- `useAuth.ts` - 认证 Hook\n- `usePermissions.ts` - 权限 Hook","x":-900,"y":-350,"width":400,"height":380,"color":"4"},
+		{"id":"api-gateway","type":"text","text":"### API Gateway\n**file:** `src/*/controllers/`\n\n**职责:** HTTP 请求路由和验证\n- JWT Token 验证\n- 请求参数校验\n- 响应格式化\n\n**关键路由:**\n- `/auth` - 认证相关\n- `/users` - 用户管理\n- `/roles` - 角色管理\n- `/jobs` - 任务操作\n- `/audit` - 审计日志","x":-400,"y":-350,"width":400,"height":380,"color":"4"},
+		{"id":"business-layer","type":"text","text":"### Business Layer\n**file:** `src/*/services/`\n\n**职责:** 核心业务逻辑\n- 用户认证和授权\n- 权限计算（OR 逻辑）\n- 角色和用户管理\n- 审计日志记录\n\n**关键服务:**\n- `AuthService` - JWT 签发\n- `PermissionsService` - 权限查询\n- `XxlJobService` - API 代理","x":100,"y":-350,"width":400,"height":380,"color":"2"},
+		{"id":"security-layer","type":"text","text":"### Security Layer\n**file:** `src/guards/`, `src/interceptors/`\n\n**职责:** 安全控制\n- JWT 认证验证\n- 权限检查\n- 审计日志拦截\n\n**关键 Guards:**\n- `JwtAuthGuard` - Token 验证\n- `AdminGuard` - 管理员验证\n- `JobPermissionGuard` - 任务权限\n- `AuditInterceptor` - 日志拦截","x":600,"y":-350,"width":400,"height":380,"color":"1"},
+		{"id":"data-layer","type":"text","text":"### Data Access Layer\n**file:** `src/prisma/`\n\n**职责:** 数据持久化\n- Prisma ORM 操作\n- 数据库迁移\n- 类型安全查询\n\n**核心模型:**\n- `User` - 用户\n- `Role` - 角色\n- `UserRole` - 用户-角色关联\n- `RoleJobPermission` - 权限\n- `AuditLog` - 审计日志","x":1100,"y":-350,"width":400,"height":380,"color":"3"},
+		{"id":"sqlite-db","type":"text","text":"### SQLite Database\n**file:** `prisma/dev.db`\n\n**职责:** 数据存储\n- 用户账号信息\n- 角色定义\n- 权限关系\n- 审计日志\n\n**特性:**\n- 单文件数据库\n- 零配置\n- 支持事务\n- WAL 模式（高并发读）","x":1100,"y":100,"width":400,"height":300,"color":"3"},
+		{"id":"xxljob-api","type":"text","text":"### xxl-job Admin API\n**外部系统**\n\n**职责:** 任务调度平台\n- 任务列表查询\n- 任务执行触发\n- 执行日志查询\n\n**关键 API:**\n- `POST /jobinfo/pageList`\n- `POST /jobinfo/trigger`\n- `POST /joblog/pageList`","x":100,"y":100,"width":400,"height":300,"color":"5"},
+		{"id":"dynamic-header","type":"text","text":"## 动态区域 (Dynamic Section)\n用户执行任务流程","x":-900,"y":500,"width":400,"height":100,"color":"6"},
+		{"id":"flow-1","type":"text","text":"**Step 1: 用户操作**\n用户在前端点击"执行"按钮\n\n**输入:** Job ID = 101\n**操作:** Click Button","x":-900,"y":650,"width":300,"height":150,"color":"4"},
+		{"id":"flow-2","type":"text","text":"**Step 2: 发送请求**\nPOST /jobs/101/execute\n\n**Headers:**\n```\nAuthorization: Bearer <JWT Token>\n```","x":-500,"y":650,"width":300,"height":150,"color":"4"},
+		{"id":"flow-3","type":"text","text":"**Step 3: JWT 验证**\nJwtAuthGuard 验证 Token\n\n**提取信息:**\n- userId: 1\n- username: \"zhangsan\"\n- isAdmin: false","x":-100,"y":650,"width":300,"height":150,"color":"1"},
+		{"id":"flow-4","type":"text","text":"**Step 4: 权限查询**\nJobPermissionGuard 调用\nPermissionsService\n\n**查询:** getUserJobPermissions(1, 101)","x":300,"y":650,"width":300,"height":150,"color":"2"},
+		{"id":"flow-5","type":"text","text":"**Step 5: 权限计算**\n查询用户的所有角色权限\n\n**OR 逻辑合并:**\n- 角色 A: canExecute=false\n- 角色 B: canExecute=true\n→ **最终: canExecute=true**","x":700,"y":650,"width":300,"height":180,"color":"2"},
+		{"id":"flow-6","type":"text","text":"**Step 6: 权限验证**\n检查 canExecute 权限\n\n**if** canExecute == true:\n  → 继续执行\n**else:**\n  → 返回 403 Forbidden","x":1100,"y":650,"width":300,"height":180,"color":"1"},
+		{"id":"flow-7","type":"text","text":"**Step 7: 调用 xxl-job API**\nXxlJobService.triggerJob(101)\n\n**API 调用:**\nPOST http://xxljob:8080/xxl-job-admin/jobinfo/trigger\n```json\n{ \"id\": 101 }\n```","x":700,"y":900,"width":350,"height":180,"color":"5"},
+		{"id":"flow-8","type":"text","text":"**Step 8: 记录审计日志**\nAuditInterceptor 自动记录\n\n**日志内容:**\n- userId: 1\n- jobId: 101\n- action: EXECUTE_JOB\n- result: SUCCESS\n- timestamp: 2025-01-18T14:30:00Z","x":300,"y":900,"width":350,"height":200,"color":"3"},
+		{"id":"flow-9","type":"text","text":"**Step 9: 返回结果**\n响应前端\n\n**Response:**\n```json\n{\n  \"message\": \"任务已触发\",\n  \"jobId\": 101\n}\n```","x":-100,"y":900,"width":300,"height":200,"color":"4"},
+		{"id":"flow-10","type":"text","text":"**Step 10: 前端提示**\n显示成功消息\n\n**UI:**\n```\n✓ 任务已成功触发\n```","x":-500,"y":900,"width":300,"height":150,"color":"4"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"frontend","fromSide":"right","toNode":"api-gateway","toSide":"left","label":"HTTP Request\n(JWT Token)","color":"4"},
+		{"id":"e2","fromNode":"api-gateway","fromSide":"right","toNode":"business-layer","toSide":"left","label":"Call Service","color":"2"},
+		{"id":"e3","fromNode":"business-layer","fromSide":"right","toNode":"security-layer","toSide":"left","label":"Validate Permission","color":"1"},
+		{"id":"e4","fromNode":"security-layer","fromSide":"right","toNode":"data-layer","toSide":"left","label":"Query DB","color":"3"},
+		{"id":"e5","fromNode":"data-layer","fromSide":"bottom","toNode":"sqlite-db","toSide":"top","label":"Prisma ORM","color":"3"},
+		{"id":"e6","fromNode":"business-layer","fromSide":"bottom","toNode":"xxljob-api","toSide":"top","label":"HTTP API Call","color":"5"},
+		{"id":"f1","fromNode":"flow-1","fromSide":"right","toNode":"flow-2","toSide":"left","label":"Action: 点击执行按钮","color":"4"},
+		{"id":"f2","fromNode":"flow-2","fromSide":"right","toNode":"flow-3","toSide":"left","label":"Call: POST /jobs/101/execute","color":"1"},
+		{"id":"f3","fromNode":"flow-3","fromSide":"right","toNode":"flow-4","toSide":"left","label":"Signal: JWT 验证通过","color":"2"},
+		{"id":"f4","fromNode":"flow-4","fromSide":"right","toNode":"flow-5","toSide":"left","label":"Call: getUserJobPermissions(1, 101)","color":"2"},
+		{"id":"f5","fromNode":"flow-5","fromSide":"right","toNode":"flow-6","toSide":"left","label":"Signal: 权限计算完成","color":"1"},
+		{"id":"f6","fromNode":"flow-6","fromSide":"bottom","toNode":"flow-7","toSide":"top","label":"Action: 有权限，调用 API","color":"5"},
+		{"id":"f7","fromNode":"flow-7","fromSide":"left","toNode":"flow-8","toSide":"right","label":"Signal: API 调用成功","color":"3"},
+		{"id":"f8","fromNode":"flow-8","fromSide":"left","toNode":"flow-9","toSide":"right","label":"Action: 记录日志完成","color":"4"},
+		{"id":"f9","fromNode":"flow-9","fromSide":"left","toNode":"flow-10","toSide":"right","label":"Signal: 响应返回","color":"4"}
+	]
+}

@@ -1,0 +1,92 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ==================== 用户表 ====================
+model User {
+  id              Int                    @id @default(autoincrement())
+  username        String                 @unique
+  password        String                 // bcrypt 加密
+  email           String?                @unique
+  isAdmin         Boolean                @default(false)
+  isActive        Boolean                @default(true)
+  roles           UserRole[]
+  auditLogs       AuditLog[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([username])
+  @@index([email])
+}
+
+// ==================== 角色表 ====================
+model Role {
+  id          Int                  @id @default(autoincrement())
+  name        String               @unique
+  description String?
+  users       UserRole[]
+  permissions RoleJobPermission[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([name])
+}
+
+// ==================== 用户-角色关联表（多对多） ====================
+model UserRole {
+  userId     Int
+  roleId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+  assignedBy Int?     // 由哪个管理员分配（可选）
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+// ==================== 角色-任务权限表 ====================
+model RoleJobPermission {
+  id         Int      @id @default(autoincrement())
+  roleId     Int
+  jobId      Int      // xxl-job 中的任务 ID
+  appName    String   // xxl-job 执行器名称（用于显示）
+  canView    Boolean  @default(true)
+  canExecute Boolean  @default(false)
+  canEdit    Boolean  @default(false)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([roleId, jobId])
+  @@index([jobId])
+  @@index([roleId])
+}
+
+// ==================== 审计日志表 ====================
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  jobId     Int?     // 任务 ID（如果操作与任务相关）
+  action    String   // LOGIN, EXECUTE_JOB, EDIT_JOB, ASSIGN_ROLE, CREATE_USER, etc.
+  target    String?  // 操作目标的描述
+  result    String   // SUCCESS, FAILED
+  message   String?  // 详细信息或错误信息
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([action])
+  @@index([createdAt])
+}
