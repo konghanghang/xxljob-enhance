@@ -38,7 +38,7 @@
         - *Files*: `backend/src/prisma/prisma.service.ts`, `backend/src/prisma/prisma.module.ts`
         - *Requirements*: Design - Data Access Layer
 
-- [ ] **3. 配置环境变量和配置管理**
+- [x] **3. 配置环境变量和配置管理**
     - [x] 3.1. 安装 @nestjs/config
         - *Goal*: 支持环境变量配置
         - *Details*: 安装 `@nestjs/config`，在 AppModule 中导入 ConfigModule
@@ -327,36 +327,36 @@
 ### Phase 11: 测试
 
 - [ ] **17. 编写后端单元测试**
-    - [x] 17.1. PermissionsService 单元测试
+    - [ ] 17.1. PermissionsService 单元测试
         - *Goal*: 测试权限计算逻辑（OR 逻辑）
         - *Details*: 测试 `getUserJobPermissions` 的多角色权限合并、无权限场景
         - *Files*: `backend/src/permissions/permissions.service.spec.ts`
         - *Requirements*: US-008, NFR-005（测试覆盖率 > 80%）
-    - [x] 17.2. AuthService 单元测试
+    - [ ] 17.2. AuthService 单元测试
         - *Goal*: 测试密码验证和 JWT 签发
         - *Details*: 测试 bcrypt 加密、Token 签发和验证
         - *Files*: `backend/src/auth/auth.service.spec.ts`
         - *Requirements*: US-001, NFR-002
 
 - [ ] **18. 编写 E2E 测试**
-    - [x] 18.1. 任务执行权限验证 E2E 测试
+    - [ ] 18.1. 任务执行权限验证 E2E 测试
         - *Goal*: 测试完整的权限验证流程
         - *Details*: 测试有权限用户可以执行任务，无权限用户返回 403
         - *Files*: `backend/test/jobs.e2e-spec.ts`
         - *Requirements*: US-003, NFR-005
-    - [x] 18.2. 用户登录和认证 E2E 测试
+    - [ ] 18.2. 用户登录和认证 E2E 测试
         - *Goal*: 测试认证流程
         - *Details*: 测试正确/错误密码、Token 过期、禁用用户
         - *Files*: `backend/test/auth.e2e-spec.ts`
         - *Requirements*: US-001
 
 - [ ] **19. 编写前端测试**
-    - [x] 19.1. JobExecuteButton 组件测试
+    - [ ] 19.1. JobExecuteButton 组件测试
         - *Goal*: 测试权限控制逻辑
         - *Details*: 测试有权限显示可点击按钮，无权限禁用按钮
         - *Files*: `frontend/src/components/Jobs/JobExecuteButton.test.tsx`
         - *Requirements*: US-003, NFR-005
-    - [x] 19.2. useAuth Hook 测试
+    - [ ] 19.2. useAuth Hook 测试
         - *Goal*: 测试认证状态管理
         - *Details*: 测试登录、登出、Token 恢复
         - *Files*: `frontend/src/hooks/useAuth.test.ts`
@@ -367,12 +367,12 @@
 ### Phase 12: 部署准备
 
 - [ ] **20. 配置 Docker 部署**
-    - [x] 20.1. 编写后端 Dockerfile
+    - [ ] 20.1. 编写后端 Dockerfile
         - *Goal*: 容器化后端应用
         - *Details*: 多阶段构建，包含 Prisma 迁移命令
         - *Files*: `backend/Dockerfile`
         - *Requirements*: NFR-003（Docker 部署）
-    - [x] 20.2. 编写 docker-compose.yml
+    - [ ] 20.2. 编写 docker-compose.yml
         - *Goal*: 简化部署流程
         - *Details*: 定义 xxljob-enhance 服务，映射 3000 端口，持久化 SQLite 数据库
         - *Files*: `docker-compose.yml`
@@ -384,12 +384,12 @@
         - *Requirements*: NFR-003
 
 - [ ] **21. 编写文档**
-    - [x] 21.1. 编写部署文档
+    - [ ] 21.1. 编写部署文档
         - *Goal*: 指导用户如何部署
         - *Details*: Docker 部署步骤、环境变量配置、初始管理员账号创建
         - *Files*: `docs/deployment.md`
         - *Requirements*: NFR-005（文档）
-    - [x] 21.2. 生成 API 文档（Swagger）
+    - [ ] 21.2. 生成 API 文档（Swagger）
         - *Goal*: 自动生成 API 文档
         - *Details*: 安装 `@nestjs/swagger`，添加装饰器，配置 Swagger UI
         - *Files*: `backend/src/main.ts`
