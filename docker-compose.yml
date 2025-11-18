@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: xxljob-enhance-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      DATABASE_URL: file:/app/data/prod.db
+
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-minimum-32-characters-required}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-1h}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-7d}
+
+      # XXL-Job Admin Configuration
+      XXL_JOB_ADMIN_URL: ${XXL_JOB_ADMIN_URL:-http://localhost:8080/xxl-job-admin}
+      XXL_JOB_ADMIN_USERNAME: ${XXL_JOB_ADMIN_USERNAME:-admin}
+      XXL_JOB_ADMIN_PASSWORD: ${XXL_JOB_ADMIN_PASSWORD:-123456}
+
+      # Application Configuration
+      NODE_ENV: production
+      PORT: 3000
+
+      # CORS Configuration
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    volumes:
+      # Persist SQLite database
+      - sqlite-data:/app/data
+      # Persist Prisma migrations history
+      - ./backend/prisma/migrations:/app/prisma/migrations:ro
+    networks:
+      - xxljob-enhance-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: xxljob-enhance-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - xxljob-enhance-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+# Named volumes for data persistence
+volumes:
+  sqlite-data:
+    driver: local
+    name: xxljob-enhance-sqlite-data
+
+# Custom network
+networks:
+  xxljob-enhance-network:
+    driver: bridge
+    name: xxljob-enhance-network

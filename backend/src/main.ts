@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import helmet from 'helmet';
@@ -38,6 +39,40 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Swagger API Documentation
+  const config = new DocumentBuilder()
+    .setTitle('xxljob-enhance API')
+    .setDescription(
+      'API documentation for xxljob-enhance - A permission management system for XXL-Job tasks',
+    )
+    .setVersion('1.0')
+    .addTag('auth', 'Authentication endpoints')
+    .addTag('users', 'User management')
+    .addTag('roles', 'Role management')
+    .addTag('permissions', 'Permission management')
+    .addTag('jobs', 'Job management with permission control')
+    .addTag('audit', 'Audit log queries')
+    .addTag('health', 'Health check')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

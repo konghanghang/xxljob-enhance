@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+npm-debug.log
+package-lock.json
+
+# Build artifacts
+dist
+build
+
+# Tests
+coverage
+*.spec.ts
+*.spec.tsx
+*.test.ts
+*.test.tsx
+vitest.config.ts
+src/test
+
+# Development files
+.env
+.env.local
+.env.development
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+
+# Config files
+.prettierrc
+.eslintrc.js
+eslint.config.js
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+vite.config.ts

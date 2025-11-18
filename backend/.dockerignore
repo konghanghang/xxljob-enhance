@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+npm-debug.log
+package-lock.json
+
+# Build artifacts
+dist
+build
+*.tsbuildinfo
+
+# Tests
+test
+coverage
+*.spec.ts
+jest.config.js
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+docs
+
+# SQLite database (will be mounted as volume)
+*.db
+*.db-journal
+dev.db
+prisma/dev.db
+
+# Logs
+logs
+*.log
+
+# Misc
+.prettierrc
+.eslintrc.js
+tsconfig.json
