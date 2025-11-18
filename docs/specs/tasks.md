@@ -184,7 +184,7 @@
 
 ### Phase 7: 任务代理模块
 
-- [ ] **9. 实现任务相关 API（权限控制）**
+- [x] **9. 实现任务相关 API（权限控制）**
     - [x] 9.1. 创建 JobsService
         - *Goal*: 封装任务业务逻辑
         - *Details*: 调用 XxlJobService 和 PermissionsService，实现权限过滤的任务列表
@@ -192,12 +192,12 @@
         - *Requirements*: US-002, US-003, US-004
     - [x] 9.2. 创建 JobsController
         - *Goal*: 提供任务操作 API（基于权限）
-        - *Details*: 实现 `GET /jobs`（权限过滤）, `GET /jobs/:jobId`（@RequirePermission(VIEW)）, `POST /jobs/:jobId/execute`（@RequirePermission(EXECUTE)）, `GET /jobs/:jobId/logs`, `PATCH /jobs/:jobId`（@RequirePermission(EDIT)）
+        - *Details*: 实现 `GET /jobs`（权限过滤）, `GET /jobs/:jobId`（@RequirePermission(VIEW)）, `POST /jobs/:jobId/trigger`（@RequirePermission(EXECUTE)）, `GET /jobs/:jobId/logs`, `PATCH /jobs/:jobId`（@RequirePermission(EDIT)）
         - *Files*: `backend/src/jobs/jobs.controller.ts`
         - *Requirements*: US-002, US-003, US-004
-    - [ ] 9.3. 创建任务相关 DTO
+    - [x] 9.3. 创建任务相关 DTO
         - *Goal*: 验证请求参数
-        - *Details*: JobQueryDto, JobDto, ExecuteJobDto, UpdateJobDto, LogQueryDto
+        - *Details*: JobQueryDto, ExecuteJobDto, UpdateJobDto, LogQueryDto
         - *Files*: `backend/src/jobs/dto/*.dto.ts`
         - *Requirements*: Design - Jobs Module
 
