@@ -6,6 +6,7 @@ import {
   XxlJob,
   XxlJobPageResult,
   XxlJobGroup,
+  XxlJobGroupPageResult,
   XxlJobLog,
   XxlJobLogPageResult,
   TriggerJobRequest,
@@ -122,47 +123,69 @@ export class XxlJobService implements OnModuleInit {
     start?: number;
     length?: number;
   }): Promise<XxlJobPageResult> {
-    const queryParams = new URLSearchParams();
-    queryParams.append('jobGroup', params.jobGroup.toString());
-    queryParams.append('triggerStatus', (params.triggerStatus ?? -1).toString());
-    if (params.jobDesc) queryParams.append('jobDesc', params.jobDesc);
-    if (params.executorHandler) queryParams.append('executorHandler', params.executorHandler);
-    if (params.author) queryParams.append('author', params.author);
-    queryParams.append('start', (params.start ?? 0).toString());
-    queryParams.append('length', (params.length ?? 10).toString());
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('jobGroup', params.jobGroup.toString());
+      queryParams.append('triggerStatus', (params.triggerStatus ?? -1).toString());
+      if (params.jobDesc) queryParams.append('jobDesc', params.jobDesc);
+      if (params.executorHandler) queryParams.append('executorHandler', params.executorHandler);
+      if (params.author) queryParams.append('author', params.author);
+      queryParams.append('start', (params.start ?? 0).toString());
+      queryParams.append('length', (params.length ?? 10).toString());
 
-    const response = await this.axiosInstance.post<XxlJobApiResponse<XxlJobPageResult>>(
-      '/jobinfo/pageList',
-      queryParams,
-      {
-        headers: { Cookie: this.cookie },
-      },
-    );
+      // Note: /jobinfo/pageList returns paginated format, not standard API response
+      const response = await this.axiosInstance.post<XxlJobPageResult>(
+        '/jobinfo/pageList',
+        queryParams,
+        {
+          headers: { Cookie: this.cookie },
+        },
+      );
 
-    if (response.data.code !== 200) {
-      throw new HttpException(response.data.msg || 'Failed to get job list', 500);
+      this.logger.debug(`Got ${response.data.recordsTotal} total jobs, ${response.data.data.length} in current page`);
+
+      return response.data;
+    } catch (error: any) {
+      this.logger.error('Failed to get job list', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        jobGroup: params.jobGroup,
+      });
+      throw new HttpException('Failed to get job list', 500);
     }
-
-    return response.data.content;
   }
 
   /**
    * Get job groups (executors)
    */
   async getJobGroups(): Promise<XxlJobGroup[]> {
-    const response = await this.axiosInstance.post<XxlJobApiResponse<XxlJobGroup[]>>(
-      '/jobgroup/pageList',
-      new URLSearchParams({ start: '0', length: '100' }),
-      {
-        headers: { Cookie: this.cookie },
-      },
-    );
+    try {
+      this.logger.debug(`Fetching job groups from: ${this.adminUrl}/jobgroup/pageList`);
+      this.logger.debug(`Using cookie: ${this.cookie ? 'Present' : 'Missing'}`);
 
-    if (response.data.code !== 200) {
-      throw new HttpException(response.data.msg || 'Failed to get job groups', 500);
+      // Note: /jobgroup/pageList returns paginated format, not standard API response
+      const response = await this.axiosInstance.post<XxlJobGroupPageResult>(
+        '/jobgroup/pageList',
+        new URLSearchParams({ start: '0', length: '100' }),
+        {
+          headers: { Cookie: this.cookie },
+        },
+      );
+
+      this.logger.debug(`Response status: ${response.status}`);
+      this.logger.debug(`Got ${response.data.recordsTotal} job groups`);
+
+      return response.data.data;
+    } catch (error: any) {
+      this.logger.error('Failed to get job groups', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url,
+      });
+      throw new HttpException('Failed to get job groups', 500);
     }
-
-    return response.data.content;
   }
 
   /**
@@ -260,26 +283,35 @@ export class XxlJobService implements OnModuleInit {
     start?: number;
     length?: number;
   }): Promise<XxlJobLogPageResult> {
-    const queryParams = new URLSearchParams();
-    queryParams.append('jobId', params.jobId.toString());
-    if (params.logStatus) queryParams.append('logStatus', params.logStatus.toString());
-    if (params.filterTime) queryParams.append('filterTime', params.filterTime);
-    queryParams.append('start', (params.start ?? 0).toString());
-    queryParams.append('length', (params.length ?? 10).toString());
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('jobId', params.jobId.toString());
+      if (params.logStatus) queryParams.append('logStatus', params.logStatus.toString());
+      if (params.filterTime) queryParams.append('filterTime', params.filterTime);
+      queryParams.append('start', (params.start ?? 0).toString());
+      queryParams.append('length', (params.length ?? 10).toString());
 
-    const response = await this.axiosInstance.post<XxlJobApiResponse<XxlJobLogPageResult>>(
-      '/joblog/pageList',
-      queryParams,
-      {
-        headers: { Cookie: this.cookie },
-      },
-    );
+      // Note: /joblog/pageList returns paginated format, not standard API response
+      const response = await this.axiosInstance.post<XxlJobLogPageResult>(
+        '/joblog/pageList',
+        queryParams,
+        {
+          headers: { Cookie: this.cookie },
+        },
+      );
 
-    if (response.data.code !== 200) {
-      throw new HttpException(response.data.msg || 'Failed to get job logs', 500);
+      this.logger.debug(`Got ${response.data.recordsTotal} total logs for job ${params.jobId}`);
+
+      return response.data;
+    } catch (error: any) {
+      this.logger.error('Failed to get job logs', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        jobId: params.jobId,
+      });
+      throw new HttpException('Failed to get job logs', 500);
     }
-
-    return response.data.content;
   }
 
   /**

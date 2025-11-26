@@ -59,6 +59,15 @@ export interface XxlJobGroup {
 }
 
 /**
+ * xxl-job Job Group Page Result
+ */
+export interface XxlJobGroupPageResult {
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: XxlJobGroup[];
+}
+
+/**
  * xxl-job Log Info
  */
 export interface XxlJobLog {
