@@ -361,6 +361,7 @@ const RoleManagementPage: React.FC = () => {
                               placeholder="Select executor"
                               showSearch
                               optionFilterProp="label"
+                              dropdownStyle={{ minWidth: 400 }}
                               onChange={(appName) => {
                                 const group = jobGroups.find((g) => g.appname === appName);
                                 if (group) {
@@ -388,6 +389,7 @@ const RoleManagementPage: React.FC = () => {
                               showSearch
                               optionFilterProp="label"
                               disabled={!currentAppName}
+                              dropdownStyle={{ minWidth: 500 }}
                               options={availableJobs.map((job) => ({
                                 label: `#${job.id} - ${job.jobDesc}`,
                                 value: job.id,
