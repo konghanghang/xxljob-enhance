@@ -11,6 +11,7 @@ import {
   Typography,
   Checkbox,
   Card,
+  Select,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -19,8 +20,8 @@ import {
   DeleteOutlined,
   SafetyOutlined,
 } from '@ant-design/icons';
-import { rolesApi } from '../api/services';
-import type { RoleInfo, JobPermissionInfo } from '../types/api';
+import { rolesApi, jobsApi } from '../api/services';
+import type { RoleInfo, JobPermissionInfo, JobGroup } from '../types/api';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -39,12 +40,40 @@ const RoleManagementPage: React.FC = () => {
   const [editingRole, setEditingRole] = useState<RoleInfo | null>(null);
   const [selectedRole, setSelectedRole] = useState<RoleInfo | null>(null);
   const [rolePermissions, setRolePermissions] = useState<JobPermissionInfo[]>([]);
+  const [jobGroups, setJobGroups] = useState<JobGroup[]>([]);
+  const [jobsByGroup, setJobsByGroup] = useState<Record<number, any[]>>({});
   const [form] = Form.useForm();
   const [permissionsForm] = Form.useForm();
 
   useEffect(() => {
     fetchRoles();
+    fetchJobGroups();
   }, []);
+
+  const fetchJobGroups = async () => {
+    try {
+      const response = await jobsApi.getGroups();
+      setJobGroups(response.data);
+    } catch (error: any) {
+      message.error('Failed to load job groups: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const fetchJobsForGroup = async (jobGroup: number) => {
+    if (jobsByGroup[jobGroup]) {
+      return; // Already loaded
+    }
+
+    try {
+      const response = await jobsApi.getList({ jobGroup, start: 0, length: 1000 });
+      setJobsByGroup((prev) => ({
+        ...prev,
+        [jobGroup]: response.data.data,
+      }));
+    } catch (error: any) {
+      message.error('Failed to load jobs: ' + (error.response?.data?.message || error.message));
+    }
+  };
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -78,6 +107,16 @@ const RoleManagementPage: React.FC = () => {
     try {
       const response = await rolesApi.getPermissions(role.id);
       setRolePermissions(response.data);
+
+      // Pre-load jobs for all executors that have permissions
+      const uniqueAppNames = [...new Set(response.data.map((p) => p.appName))];
+      for (const appName of uniqueAppNames) {
+        const group = jobGroups.find((g) => g.appname === appName);
+        if (group) {
+          await fetchJobsForGroup(group.id);
+        }
+      }
+
       setPermissionsModalVisible(true);
     } catch (error: any) {
       message.error('Failed to load permissions: ' + (error.response?.data?.message || error.message));
@@ -288,74 +327,107 @@ const RoleManagementPage: React.FC = () => {
                   Add Job Permission
                 </Button>
 
-                {fields.map(({ key, name, ...restField }) => (
-                  <Card
-                    key={key}
-                    size="small"
-                    style={{ marginBottom: 12 }}
-                    extra={
-                      <Button
-                        type="link"
-                        danger
-                        size="small"
-                        onClick={() => remove(name)}
-                      >
-                        Remove
-                      </Button>
-                    }
-                  >
-                    <Space style={{ width: '100%' }} direction="vertical">
-                      <Space style={{ width: '100%' }}>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'jobId']}
-                          rules={[{ required: true, message: 'Required' }]}
-                          style={{ marginBottom: 0, width: 120 }}
-                        >
-                          <Input placeholder="Job ID" type="number" />
-                        </Form.Item>
+                {fields.map(({ key, name, ...restField }) => {
+                  const currentAppName = permissionsForm.getFieldValue(['permissions', name, 'appName']);
+                  const currentJobGroup = jobGroups.find((g) => g.appname === currentAppName);
+                  const availableJobs = currentJobGroup ? jobsByGroup[currentJobGroup.id] || [] : [];
 
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'appName']}
-                          rules={[{ required: true, message: 'Required' }]}
-                          style={{ marginBottom: 0, flex: 1 }}
+                  return (
+                    <Card
+                      key={key}
+                      size="small"
+                      style={{ marginBottom: 12 }}
+                      extra={
+                        <Button
+                          type="link"
+                          danger
+                          size="small"
+                          onClick={() => remove(name)}
                         >
-                          <Input placeholder="App Name" />
-                        </Form.Item>
+                          Remove
+                        </Button>
+                      }
+                    >
+                      <Space style={{ width: '100%' }} direction="vertical">
+                        <Space style={{ width: '100%' }}>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'appName']}
+                            rules={[{ required: true, message: 'Select executor' }]}
+                            style={{ marginBottom: 0, width: 200 }}
+                            label="Executor (App)"
+                          >
+                            <Select
+                              placeholder="Select executor"
+                              showSearch
+                              optionFilterProp="label"
+                              onChange={(appName) => {
+                                const group = jobGroups.find((g) => g.appname === appName);
+                                if (group) {
+                                  fetchJobsForGroup(group.id);
+                                  // Clear job selection when executor changes
+                                  permissionsForm.setFieldValue(['permissions', name, 'jobId'], undefined);
+                                }
+                              }}
+                              options={jobGroups.map((group) => ({
+                                label: `${group.title} (${group.appname})`,
+                                value: group.appname,
+                              }))}
+                            />
+                          </Form.Item>
+
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'jobId']}
+                            rules={[{ required: true, message: 'Select job' }]}
+                            style={{ marginBottom: 0, flex: 1 }}
+                            label="Job"
+                          >
+                            <Select
+                              placeholder="Select job"
+                              showSearch
+                              optionFilterProp="label"
+                              disabled={!currentAppName}
+                              options={availableJobs.map((job) => ({
+                                label: `#${job.id} - ${job.jobDesc}`,
+                                value: job.id,
+                              }))}
+                            />
+                          </Form.Item>
+                        </Space>
+
+                        <Space>
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'canView']}
+                            valuePropName="checked"
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Checkbox>Can View</Checkbox>
+                          </Form.Item>
+
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'canExecute']}
+                            valuePropName="checked"
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Checkbox>Can Execute</Checkbox>
+                          </Form.Item>
+
+                          <Form.Item
+                            {...restField}
+                            name={[name, 'canEdit']}
+                            valuePropName="checked"
+                            style={{ marginBottom: 0 }}
+                          >
+                            <Checkbox>Can Edit</Checkbox>
+                          </Form.Item>
+                        </Space>
                       </Space>
-
-                      <Space>
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'canView']}
-                          valuePropName="checked"
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Checkbox>Can View</Checkbox>
-                        </Form.Item>
-
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'canExecute']}
-                          valuePropName="checked"
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Checkbox>Can Execute</Checkbox>
-                        </Form.Item>
-
-                        <Form.Item
-                          {...restField}
-                          name={[name, 'canEdit']}
-                          valuePropName="checked"
-                          style={{ marginBottom: 0 }}
-                        >
-                          <Checkbox>Can Edit</Checkbox>
-                        </Form.Item>
-                      </Space>
-                    </Space>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </Form.List>
