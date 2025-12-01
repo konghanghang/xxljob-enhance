@@ -112,9 +112,8 @@ const JobListPage: React.FC = () => {
         duration: 3,
       });
     } catch (error: any) {
-      if (error.response) {
-        message.error('Failed to trigger job: ' + (error.response?.data?.message || error.message));
-      }
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      message.error(`Failed to trigger job: ${errorMsg}`);
     }
   };
 
