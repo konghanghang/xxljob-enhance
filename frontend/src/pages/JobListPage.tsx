@@ -101,9 +101,16 @@ const JobListPage: React.FC = () => {
         executorParam: values.executorParam || undefined,
         addressList: values.addressList || undefined,
       });
-      message.success(`Job "${selectedJob.jobDesc}" triggered successfully`);
+
+      // Close modal first
       setTriggerModalVisible(false);
       triggerForm.resetFields();
+
+      // Show success message after modal is closed
+      message.success({
+        content: `Job "${selectedJob.jobDesc}" triggered successfully!`,
+        duration: 3,
+      });
     } catch (error: any) {
       if (error.response) {
         message.error('Failed to trigger job: ' + (error.response?.data?.message || error.message));
