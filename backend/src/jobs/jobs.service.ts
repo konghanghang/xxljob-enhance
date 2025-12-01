@@ -334,7 +334,15 @@ export class JobsService {
       throw new ForbiddenException(`You do not have permission to view logs for job ${jobId}`);
     }
 
-    return this.xxlJobService.getJobLogs({ jobId, start, length });
+    // First get job info to obtain jobGroup
+    const jobInfo = await this.xxlJobService.getJobInfo(jobId);
+
+    return this.xxlJobService.getJobLogs({
+      jobGroup: jobInfo.jobGroup,
+      jobId,
+      start,
+      length,
+    });
   }
 
   /**

@@ -269,7 +269,42 @@ export class XxlJobService implements OnModuleInit {
   }
 
   /**
+   * Get job info by ID
+   * @param jobId - Job ID
+   * @returns Job info including jobGroup
+   */
+  async getJobInfo(jobId: number): Promise<any> {
+    try {
+      // Try to get from job list (using -1 to get all job groups)
+      const response = await this.axiosInstance.post<XxlJobApiResponse<XxlJobPageResult>>(
+        '/jobinfo/pageList',
+        `jobGroup=-1&jobDesc=&executorHandler=&author=&start=0&length=1000`,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Cookie: this.cookie,
+          },
+        },
+      );
+
+      const job = response.data.content.data.find((j: any) => j.id === jobId);
+      if (!job) {
+        throw new HttpException(`Job ${jobId} not found`, 404);
+      }
+
+      return job;
+    } catch (error: any) {
+      this.logger.error('Failed to get job info', {
+        message: error.message,
+        jobId,
+      });
+      throw new HttpException('Failed to get job info', 500);
+    }
+  }
+
+  /**
    * Get job execution logs
+   * @param jobGroup - Job group ID
    * @param jobId - Job ID
    * @param logStatus - Log status (1: success, 2: failed, 3: running)
    * @param filterTime - Filter by time range
@@ -277,6 +312,7 @@ export class XxlJobService implements OnModuleInit {
    * @param length - Pagination length
    */
   async getJobLogs(params: {
+    jobGroup: number;
     jobId: number;
     logStatus?: number;
     filterTime?: string;
@@ -285,6 +321,7 @@ export class XxlJobService implements OnModuleInit {
   }): Promise<XxlJobLogPageResult> {
     try {
       const queryParams = new URLSearchParams();
+      queryParams.append('jobGroup', params.jobGroup.toString());
       queryParams.append('jobId', params.jobId.toString());
       if (params.logStatus) queryParams.append('logStatus', params.logStatus.toString());
       if (params.filterTime) queryParams.append('filterTime', params.filterTime);
