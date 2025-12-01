@@ -121,20 +121,38 @@ export class JobsService {
       throw new ForbiddenException(`You do not have permission to execute job ${jobId}`);
     }
 
-    // Trigger job via xxl-job API
-    await this.xxlJobService.triggerJob(jobId, executorParam, addressList);
+    // Trigger job via xxl-job API and log audit (success or failure)
+    try {
+      await this.xxlJobService.triggerJob(jobId, executorParam, addressList);
 
-    // Log audit
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        jobId,
-        action: 'EXECUTE_JOB',
-        target: `Job ${jobId}`,
-        result: 'SUCCESS',
-        message: `Triggered job execution${executorParam ? ` with params: ${executorParam}` : ''}`,
-      },
-    });
+      // Log successful audit
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'EXECUTE_JOB',
+          target: `Job ${jobId}`,
+          result: 'SUCCESS',
+          message: `Triggered job execution${executorParam ? ` with params: ${executorParam}` : ''}`,
+        },
+      });
+    } catch (error) {
+      // Log failed audit
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'EXECUTE_JOB',
+          target: `Job ${jobId}`,
+          result: 'FAILURE',
+          message: `Failed to trigger job: ${errorMessage}${executorParam ? ` (params: ${executorParam})` : ''}`,
+        },
+      });
+
+      // Re-throw error to return it to the client
+      throw error;
+    }
   }
 
   /**
@@ -154,19 +172,38 @@ export class JobsService {
       throw new ForbiddenException(`You do not have permission to start job ${jobId}`);
     }
 
-    await this.xxlJobService.startJob(jobId);
+    // Start job and log audit (success or failure)
+    try {
+      await this.xxlJobService.startJob(jobId);
 
-    // Log audit
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        jobId,
-        action: 'START_JOB',
-        target: `Job ${jobId}`,
-        result: 'SUCCESS',
-        message: 'Started job scheduling',
-      },
-    });
+      // Log successful audit
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'START_JOB',
+          target: `Job ${jobId}`,
+          result: 'SUCCESS',
+          message: 'Started job scheduling',
+        },
+      });
+    } catch (error) {
+      // Log failed audit
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'START_JOB',
+          target: `Job ${jobId}`,
+          result: 'FAILURE',
+          message: `Failed to start job: ${errorMessage}`,
+        },
+      });
+
+      // Re-throw error to return it to the client
+      throw error;
+    }
   }
 
   /**
@@ -186,19 +223,38 @@ export class JobsService {
       throw new ForbiddenException(`You do not have permission to stop job ${jobId}`);
     }
 
-    await this.xxlJobService.stopJob(jobId);
+    // Stop job and log audit (success or failure)
+    try {
+      await this.xxlJobService.stopJob(jobId);
 
-    // Log audit
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        jobId,
-        action: 'STOP_JOB',
-        target: `Job ${jobId}`,
-        result: 'SUCCESS',
-        message: 'Stopped job scheduling',
-      },
-    });
+      // Log successful audit
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'STOP_JOB',
+          target: `Job ${jobId}`,
+          result: 'SUCCESS',
+          message: 'Stopped job scheduling',
+        },
+      });
+    } catch (error) {
+      // Log failed audit
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'STOP_JOB',
+          target: `Job ${jobId}`,
+          result: 'FAILURE',
+          message: `Failed to stop job: ${errorMessage}`,
+        },
+      });
+
+      // Re-throw error to return it to the client
+      throw error;
+    }
   }
 
   /**
@@ -219,19 +275,38 @@ export class JobsService {
       throw new ForbiddenException(`You do not have permission to edit job ${jobId}`);
     }
 
-    await this.xxlJobService.updateJob({ id: jobId, ...updateData });
+    // Update job and log audit (success or failure)
+    try {
+      await this.xxlJobService.updateJob({ id: jobId, ...updateData });
 
-    // Log audit
-    await this.prisma.auditLog.create({
-      data: {
-        userId,
-        jobId,
-        action: 'EDIT_JOB',
-        target: `Job ${jobId}`,
-        result: 'SUCCESS',
-        message: `Updated job configuration: ${JSON.stringify(updateData)}`,
-      },
-    });
+      // Log successful audit
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'EDIT_JOB',
+          target: `Job ${jobId}`,
+          result: 'SUCCESS',
+          message: `Updated job configuration: ${JSON.stringify(updateData)}`,
+        },
+      });
+    } catch (error) {
+      // Log failed audit
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          jobId,
+          action: 'EDIT_JOB',
+          target: `Job ${jobId}`,
+          result: 'FAILURE',
+          message: `Failed to update job: ${errorMessage}`,
+        },
+      });
+
+      // Re-throw error to return it to the client
+      throw error;
+    }
   }
 
   /**

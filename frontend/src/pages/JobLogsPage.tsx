@@ -27,9 +27,11 @@ const JobLogsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [logs, setLogs] = useState<XxlJobLog[]>([]);
   const [jobGroups, setJobGroups] = useState<JobGroup[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<number>(0);
   const [selectedJobId, setSelectedJobId] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
+  const [jobsLoading, setJobsLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 20, total: 0 });
   const [logDetailModal, setLogDetailModal] = useState<{ visible: boolean; log: any }>({
     visible: false,
@@ -50,6 +52,13 @@ const JobLogsPage: React.FC = () => {
     fetchJobGroups();
   }, []);
 
+  // Fetch jobs when group changes
+  useEffect(() => {
+    if (selectedGroup > 0) {
+      fetchJobs();
+    }
+  }, [selectedGroup]);
+
   // Fetch logs when filters change
   useEffect(() => {
     if (selectedGroup > 0 && selectedJobId) {
@@ -67,6 +76,30 @@ const JobLogsPage: React.FC = () => {
     } catch (error: any) {
       message.error('Failed to load job groups: ' + (error.response?.data?.message || error.message));
     }
+  };
+
+  const fetchJobs = async () => {
+    setJobsLoading(true);
+    try {
+      const response = await jobsApi.getList({
+        jobGroup: selectedGroup,
+        start: 0,
+        length: 10000, // Get all jobs
+      });
+      setJobs(response.data.data);
+    } catch (error: any) {
+      message.error('Failed to load jobs: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  const handleGroupChange = (groupId: number) => {
+    setSelectedGroup(groupId);
+    // Clear job selection and logs when switching groups
+    setSelectedJobId(undefined);
+    setLogs([]);
+    setPagination({ current: 1, pageSize: 20, total: 0 });
   };
 
   const fetchLogs = async () => {
@@ -193,27 +226,28 @@ const JobLogsPage: React.FC = () => {
           <Select
             style={{ width: 200 }}
             placeholder="Select Job Group"
-            value={selectedGroup}
-            onChange={setSelectedGroup}
+            value={selectedGroup || undefined}
+            onChange={handleGroupChange}
             options={jobGroups.map((group) => ({
               label: `${group.title} (${group.appname})`,
               value: group.id,
             }))}
           />
           <Select
-            style={{ width: 150 }}
-            placeholder="Select Job ID"
+            style={{ width: 300 }}
+            placeholder="Select Job"
             value={selectedJobId}
             onChange={setSelectedJobId}
             allowClear
             showSearch
-          >
-            {Array.from(new Set(logs.map((log) => log.jobId))).map((jobId) => (
-              <Select.Option key={jobId} value={jobId}>
-                Job {jobId}
-              </Select.Option>
-            ))}
-          </Select>
+            loading={jobsLoading}
+            disabled={!selectedGroup || jobsLoading}
+            optionFilterProp="label"
+            options={jobs.map((job) => ({
+              label: `#${job.id} - ${job.jobDesc}`,
+              value: job.id,
+            }))}
+          />
         </Space>
         <Button
           type="primary"
