@@ -31,33 +31,32 @@ export class JobsService {
     start = 0,
     length = 10,
   ): Promise<XxlJobPageResult> {
-    // Get all jobs from xxl-job
-    const jobList = await this.xxlJobService.getJobList({
-      jobGroup,
-      start,
-      length: 1000, // Get more to filter, then paginate
-    });
-
-    // Get user permissions
+    // Get user permissions first
     const userPermissions = await this.permissionsService.getUserPermissions(userId);
 
-    // Admin can see all jobs
+    // Admin can see all jobs - pass through pagination params directly
     if (userPermissions.isAdmin) {
-      // Re-paginate for admin
-      const paginatedData = jobList.data.slice(start, start + length);
-      return {
-        recordsTotal: jobList.recordsTotal,
-        recordsFiltered: jobList.recordsFiltered,
-        data: paginatedData,
-      };
+      return this.xxlJobService.getJobList({
+        jobGroup,
+        start,
+        length,
+      });
     }
+
+    // For non-admin users, we need to fetch all jobs first to filter by permissions
+    // This is necessary because we can't filter on xxl-job side
+    const allJobs = await this.xxlJobService.getJobList({
+      jobGroup,
+      start: 0,
+      length: 10000, // Fetch a large number to get all jobs
+    });
 
     // Filter jobs by permissions (only show jobs user can view)
     const accessibleJobIds = new Set(
       userPermissions.permissions.filter((p) => p.canView).map((p) => p.jobId),
     );
 
-    const filteredJobs = jobList.data.filter((job) => accessibleJobIds.has(job.id));
+    const filteredJobs = allJobs.data.filter((job) => accessibleJobIds.has(job.id));
 
     // Paginate filtered results
     const paginatedJobs = filteredJobs.slice(start, start + length);

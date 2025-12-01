@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Put,
   UseGuards,
   ParseIntPipe,
   Query,
@@ -131,12 +132,12 @@ export class RolesController {
   }
 
   /**
-   * POST /roles/:id/permissions/batch
+   * PUT /roles/:id/permissions
    * Batch set job permissions for a role (admin only)
    * Replaces all existing permissions
    */
   @RequireAdmin()
-  @Post(':id/permissions/batch')
+  @Put(':id/permissions')
   async batchSetPermissions(
     @Param('id', ParseIntPipe) id: number,
     @Body() batchDto: BatchSetPermissionsDto,

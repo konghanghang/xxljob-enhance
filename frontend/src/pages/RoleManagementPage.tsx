@@ -61,15 +61,23 @@ const RoleManagementPage: React.FC = () => {
 
   const fetchJobsForGroup = async (jobGroup: number) => {
     if (jobsByGroup[jobGroup]) {
+      console.log(`Jobs for group ${jobGroup} already cached (${jobsByGroup[jobGroup].length} jobs)`);
       return; // Already loaded
     }
 
     try {
-      const response = await jobsApi.getList({ jobGroup, start: 0, length: 1000 });
-      setJobsByGroup((prev) => ({
-        ...prev,
-        [jobGroup]: response.data.data,
-      }));
+      console.log(`Fetching jobs for group ${jobGroup}...`);
+      // Fetch all jobs for this group (use a large number to get all)
+      const response = await jobsApi.getList({ jobGroup, start: 0, length: 10000 });
+      console.log(`✅ Loaded ${response.data.data.length} jobs for group ${jobGroup}, total: ${response.data.recordsTotal}`);
+      setJobsByGroup((prev) => {
+        const updated = {
+          ...prev,
+          [jobGroup]: response.data.data,
+        };
+        console.log(`Updated jobsByGroup:`, Object.keys(updated).map(k => `${k}: ${updated[k].length} jobs`));
+        return updated;
+      });
     } catch (error: any) {
       message.error('Failed to load jobs: ' + (error.response?.data?.message || error.message));
     }
@@ -151,8 +159,14 @@ const RoleManagementPage: React.FC = () => {
     try {
       const values = await permissionsForm.validateFields();
 
-      // Transform form values to permission array
-      const permissions = values.permissions || [];
+      // Transform form values to permission array and ensure boolean fields have default values
+      const permissions = (values.permissions || []).map((perm: any) => ({
+        jobId: perm.jobId,
+        appName: perm.appName,
+        canView: perm.canView ?? false,
+        canExecute: perm.canExecute ?? false,
+        canEdit: perm.canEdit ?? false,
+      }));
 
       await rolesApi.batchSetPermissions(selectedRole.id, { permissions });
       message.success('Permissions updated successfully');
@@ -319,7 +333,11 @@ const RoleManagementPage: React.FC = () => {
               <div>
                 <Button
                   type="dashed"
-                  onClick={() => add()}
+                  onClick={() => add({
+                    canView: false,
+                    canExecute: false,
+                    canEdit: false
+                  })}
                   block
                   icon={<PlusOutlined />}
                   style={{ marginBottom: 16 }}
@@ -327,12 +345,7 @@ const RoleManagementPage: React.FC = () => {
                   Add Job Permission
                 </Button>
 
-                {fields.map(({ key, name, ...restField }) => {
-                  const currentAppName = permissionsForm.getFieldValue(['permissions', name, 'appName']);
-                  const currentJobGroup = jobGroups.find((g) => g.appname === currentAppName);
-                  const availableJobs = currentJobGroup ? jobsByGroup[currentJobGroup.id] || [] : [];
-
-                  return (
+                {fields.map(({ key, name, ...restField }) => (
                     <Card
                       key={key}
                       size="small"
@@ -362,12 +375,13 @@ const RoleManagementPage: React.FC = () => {
                               showSearch
                               optionFilterProp="label"
                               dropdownStyle={{ minWidth: 400 }}
-                              onChange={(appName) => {
+                              onChange={async (appName) => {
                                 const group = jobGroups.find((g) => g.appname === appName);
                                 if (group) {
-                                  fetchJobsForGroup(group.id);
-                                  // Clear job selection when executor changes
+                                  // Clear job selection first
                                   permissionsForm.setFieldValue(['permissions', name, 'jobId'], undefined);
+                                  // Then fetch jobs (wait for completion to ensure state is updated)
+                                  await fetchJobsForGroup(group.id);
                                 }
                               }}
                               options={jobGroups.map((group) => ({
@@ -378,23 +392,42 @@ const RoleManagementPage: React.FC = () => {
                           </Form.Item>
 
                           <Form.Item
-                            {...restField}
-                            name={[name, 'jobId']}
-                            rules={[{ required: true, message: 'Select job' }]}
-                            style={{ marginBottom: 0, flex: 1 }}
-                            label="Job"
+                            noStyle
+                            shouldUpdate={(prevValues, currentValues) =>
+                              prevValues.permissions?.[name]?.appName !== currentValues.permissions?.[name]?.appName
+                            }
                           >
-                            <Select
-                              placeholder="Select job"
-                              showSearch
-                              optionFilterProp="label"
-                              disabled={!currentAppName}
-                              dropdownStyle={{ minWidth: 500 }}
-                              options={availableJobs.map((job) => ({
-                                label: `#${job.id} - ${job.jobDesc}`,
-                                value: job.id,
-                              }))}
-                            />
+                            {() => {
+                              const currentAppName = permissionsForm.getFieldValue(['permissions', name, 'appName']);
+                              const currentJobGroup = jobGroups.find((g) => g.appname === currentAppName);
+                              const availableJobs = currentJobGroup ? jobsByGroup[currentJobGroup.id] || [] : [];
+
+                              console.log(`Rendering job select for item ${name}: appName=${currentAppName}, availableJobs=${availableJobs.length}`);
+
+                              return (
+                                <Form.Item
+                                  {...restField}
+                                  name={[name, 'jobId']}
+                                  rules={[{ required: true, message: 'Select job' }]}
+                                  style={{ marginBottom: 0, flex: 1 }}
+                                  label="Job"
+                                >
+                                  <Select
+                                    placeholder={availableJobs.length > 0 ? `Select job (${availableJobs.length} available)` : 'Select job'}
+                                    showSearch
+                                    optionFilterProp="label"
+                                    disabled={!currentAppName}
+                                    dropdownStyle={{ minWidth: 500 }}
+                                    virtual={true}
+                                    listHeight={400}
+                                    options={availableJobs.map((job) => ({
+                                      label: `#${job.id} - ${job.jobDesc}`,
+                                      value: job.id,
+                                    }))}
+                                  />
+                                </Form.Item>
+                              );
+                            }}
                           </Form.Item>
                         </Space>
 
@@ -428,8 +461,7 @@ const RoleManagementPage: React.FC = () => {
                         </Space>
                       </Space>
                     </Card>
-                  );
-                })}
+                ))}
               </div>
             )}
           </Form.List>
