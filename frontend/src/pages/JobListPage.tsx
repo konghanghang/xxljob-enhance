@@ -12,6 +12,7 @@ import {
   Form,
   Input,
   Typography,
+  App,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -33,6 +34,7 @@ const { TextArea } = Input;
  */
 
 const JobListPage: React.FC = () => {
+  const { notification, modal } = App.useApp();
   const [jobs, setJobs] = useState<XxlJob[]>([]);
   const [jobGroups, setJobGroups] = useState<JobGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<number>(0);
@@ -40,6 +42,7 @@ const JobListPage: React.FC = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [triggerModalVisible, setTriggerModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState<XxlJob | null>(null);
+  const [triggering, setTriggering] = useState(false);
   const navigate = useNavigate();
   const [triggerForm] = Form.useForm();
 
@@ -95,25 +98,57 @@ const JobListPage: React.FC = () => {
   const handleTriggerConfirm = async () => {
     if (!selectedJob) return;
 
+    const jobDesc = selectedJob.jobDesc;
+    const jobId = selectedJob.id;
+
+    setTriggering(true);
     try {
       const values = await triggerForm.validateFields();
-      await jobsApi.trigger(selectedJob.id, {
+      await jobsApi.trigger(jobId, {
         executorParam: values.executorParam || undefined,
         addressList: values.addressList || undefined,
       });
 
-      // Close modal first
+      // Close modal and reset form
       setTriggerModalVisible(false);
       triggerForm.resetFields();
 
-      // Show success message after modal is closed
-      message.success({
-        content: `Job "${selectedJob.jobDesc}" triggered successfully!`,
-        duration: 3,
-      });
+      // Show success notification and modal
+      setTimeout(() => {
+        notification.success({
+          message: '✓ Job Triggered Successfully',
+          description: `Job "${jobDesc}" (ID: ${jobId}) has been triggered. You can check the execution logs for details.`,
+          duration: 5,
+          placement: 'topRight',
+        });
+
+        // Also show a Modal.success as backup
+        modal.success({
+          title: '✓ Job Triggered Successfully',
+          content: `Job "${jobDesc}" (ID: ${jobId}) has been triggered.`,
+          okText: 'Got it',
+          centered: true,
+        });
+      }, 300);
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
-      message.error(`Failed to trigger job: ${errorMsg}`);
+
+      // Don't close modal on error, show both notification and alert
+      notification.error({
+        message: '✗ Failed to Trigger Job',
+        description: `Unable to trigger job "${jobDesc}": ${errorMsg}`,
+        duration: 6,
+        placement: 'topRight',
+      });
+
+      modal.error({
+        title: '✗ Failed to Trigger Job',
+        content: `Unable to trigger job "${jobDesc}": ${errorMsg}`,
+        okText: 'Close',
+        centered: true,
+      });
+    } finally {
+      setTriggering(false);
     }
   };
 
@@ -313,6 +348,7 @@ const JobListPage: React.FC = () => {
           triggerForm.resetFields();
         }}
         okText="Trigger"
+        confirmLoading={triggering}
       >
         <Form form={triggerForm} layout="vertical">
           <Form.Item
