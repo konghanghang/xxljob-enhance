@@ -35,10 +35,12 @@ const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [roles, setRoles] = useState<RoleInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [rolesLoading, setRolesLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [rolesModalVisible, setRolesModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
+  const [userRoles, setUserRoles] = useState<number[]>([]);
   const [form] = Form.useForm();
   const [rolesForm] = Form.useForm();
 
@@ -46,6 +48,7 @@ const UserManagementPage: React.FC = () => {
     fetchUsers();
     fetchRoles();
   }, []);
+
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -86,15 +89,29 @@ const UserManagementPage: React.FC = () => {
   };
 
   const handleManageRoles = async (user: UserInfo) => {
+    console.log('📋 handleManageRoles called for user:', user.username);
     setSelectedUser(user);
+    setRolesLoading(true);
+
     try {
+      // Load the user's roles BEFORE opening modal
       const response = await usersApi.getRoles(user.id);
-      rolesForm.setFieldsValue({
-        roleIds: response.data.map((role) => role.id),
-      });
+      const userRoleIds = response.data.map((item) => item.role.id);
+      console.log('✅ User roles loaded:', userRoleIds, 'for user:', user.username);
+
+      // Set the roles in state
+      setUserRoles(userRoleIds);
+
+      // Set form initial values
+      rolesForm.setFieldsValue({ roleIds: userRoleIds });
+
+      // Now open modal with data ready
+      console.log('🚪 Opening modal with values:', userRoleIds);
       setRolesModalVisible(true);
     } catch (error: any) {
       message.error('Failed to load user roles: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setRolesLoading(false);
     }
   };
 
@@ -329,10 +346,15 @@ const UserManagementPage: React.FC = () => {
         onCancel={() => {
           setRolesModalVisible(false);
           rolesForm.resetFields();
+          setUserRoles([]);
         }}
         okText="Update"
+        confirmLoading={rolesLoading}
       >
-        <Form form={rolesForm} layout="vertical">
+        <Form
+          form={rolesForm}
+          layout="vertical"
+        >
           <Form.Item
             label="Roles"
             name="roleIds"
@@ -341,6 +363,13 @@ const UserManagementPage: React.FC = () => {
             <Select
               mode="multiple"
               placeholder="Select roles"
+              loading={rolesLoading}
+              value={userRoles}
+              onChange={(value) => {
+                console.log('🔄 Select onChange:', value);
+                setUserRoles(value);
+                rolesForm.setFieldValue('roleIds', value);
+              }}
               options={roles.map((role) => ({
                 label: role.name,
                 value: role.id,

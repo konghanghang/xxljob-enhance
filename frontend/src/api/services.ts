@@ -8,6 +8,7 @@ import type {
   CreateUserRequest,
   UpdateUserRequest,
   AssignRolesRequest,
+  UserRoleAssignment,
   RoleInfo,
   CreateRoleRequest,
   UpdateRoleRequest,
@@ -60,7 +61,7 @@ export const usersApi = {
 
   hardDelete: (id: number) => apiClient.delete(`/users/${id}/hard`),
 
-  getRoles: (id: number) => apiClient.get<RoleInfo[]>(`/users/${id}/roles`),
+  getRoles: (id: number) => apiClient.get<UserRoleAssignment[]>(`/users/${id}/roles`),
 
   assignRoles: (id: number, data: AssignRolesRequest) =>
     apiClient.post(`/users/${id}/roles`, data),

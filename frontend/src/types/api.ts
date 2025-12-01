@@ -53,6 +53,12 @@ export interface AssignRolesRequest {
   roleIds: number[];
 }
 
+export interface UserRoleAssignment {
+  role: RoleInfo;
+  assignedAt: string;
+  assignedBy: number | null;
+}
+
 // ============ Role Types ============
 export interface RoleInfo {
   id: number;
