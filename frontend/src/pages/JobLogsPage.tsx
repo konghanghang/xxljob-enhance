@@ -109,8 +109,6 @@ const JobLogsPage: React.FC = () => {
     try {
       const start = (pagination.current - 1) * pagination.pageSize;
       const response = await jobsApi.getLogs(selectedJobId, {
-        jobGroup: selectedGroup,
-        jobId: selectedJobId,
         start,
         length: pagination.pageSize,
       });

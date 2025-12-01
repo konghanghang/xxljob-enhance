@@ -177,12 +177,9 @@ export interface LogPageResult {
 }
 
 export interface LogQueryParams {
-  jobGroup: number;
-  jobId?: number;
-  logStatus?: number;
-  filterTime?: string;
   start?: number;
   length?: number;
+  logStatus?: number;
 }
 
 // ============ Audit Types ============
