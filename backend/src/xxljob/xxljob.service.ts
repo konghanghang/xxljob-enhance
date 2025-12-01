@@ -273,12 +273,13 @@ export class XxlJobService implements OnModuleInit {
    * @param jobId - Job ID
    * @returns Job info including jobGroup
    */
-  async getJobInfo(jobId: number): Promise<any> {
+  async getJobInfo(jobId: number): Promise<XxlJob> {
     try {
-      // Try to get from job list (using -1 to get all job groups)
-      const response = await this.axiosInstance.post<XxlJobApiResponse<XxlJobPageResult>>(
+      // Try to get from job list (using -1 to get all job groups and all trigger statuses)
+      // Note: /jobinfo/pageList returns paginated format, not standard API response
+      const response = await this.axiosInstance.post<XxlJobPageResult>(
         '/jobinfo/pageList',
-        `jobGroup=-1&jobDesc=&executorHandler=&author=&start=0&length=1000`,
+        `jobGroup=-1&triggerStatus=-1&jobDesc=&executorHandler=&author=&start=0&length=1000`,
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -287,7 +288,16 @@ export class XxlJobService implements OnModuleInit {
         },
       );
 
-      const job = response.data.content.data.find((j: any) => j.id === jobId);
+      // Check if response data exists
+      if (!response.data || !response.data.data) {
+        this.logger.error('Invalid response from xxl-job API', {
+          jobId,
+          response: response.data,
+        });
+        throw new HttpException('Invalid response from xxl-job API', 500);
+      }
+
+      const job = response.data.data.find((j: XxlJob) => j.id === jobId);
       if (!job) {
         throw new HttpException(`Job ${jobId} not found`, 404);
       }
@@ -323,7 +333,8 @@ export class XxlJobService implements OnModuleInit {
       const queryParams = new URLSearchParams();
       queryParams.append('jobGroup', params.jobGroup.toString());
       queryParams.append('jobId', params.jobId.toString());
-      if (params.logStatus) queryParams.append('logStatus', params.logStatus.toString());
+      // logStatus: 0=all, 1=success, 2=failed, 3=running - default to 0 (all)
+      queryParams.append('logStatus', (params.logStatus ?? 0).toString());
       if (params.filterTime) queryParams.append('filterTime', params.filterTime);
       queryParams.append('start', (params.start ?? 0).toString());
       queryParams.append('length', (params.length ?? 10).toString());
