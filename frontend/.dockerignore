@@ -12,6 +12,7 @@ coverage
 *.spec.tsx
 *.test.ts
 *.test.tsx
+**/__tests__
 vitest.config.ts
 src/test
 
