@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Backend Service
   backend:
-    image: ghcr.io/konghanghang/xxljob-enhance/backend:latest
+    image: ghcr.io/konghanghang/xxljob-enhance-backend:latest
     container_name: xxljob-enhance-backend
     restart: unless-stopped
     ports:
@@ -44,7 +44,7 @@ services:
 
   # Frontend Service
   frontend:
-    image: ghcr.io/konghanghang/xxljob-enhance/frontend:latest
+    image: ghcr.io/konghanghang/xxljob-enhance-frontend:latest
     container_name: xxljob-enhance-frontend
     restart: unless-stopped
     ports:
