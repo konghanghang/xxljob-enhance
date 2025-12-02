@@ -3,12 +3,17 @@ FROM node:20-alpine AS dependencies
 
 WORKDIR /app
 
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
-COPY prisma ./prisma/
 
 # Install dependencies (including devDependencies for build)
 RUN npm ci
+
+# Copy Prisma schema
+COPY prisma ./prisma/
 
 # Generate Prisma Client
 RUN npx prisma generate
