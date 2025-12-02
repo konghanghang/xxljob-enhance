@@ -1,0 +1,452 @@
+{
+  "nodes": [
+    {
+      "id": "trigger-section",
+      "type": "text",
+      "text": "# Trigger Events\n触发点",
+      "x": -400,
+      "y": -600,
+      "width": 800,
+      "height": 60,
+      "color": "1"
+    },
+    {
+      "id": "trigger-pr",
+      "type": "text",
+      "text": "## Pull Request\n**Trigger**: PR created/updated\n**Branch**: any → master\n\n触发 `pr-check.yml` workflow",
+      "x": -600,
+      "y": -500,
+      "width": 250,
+      "height": 150,
+      "color": "4"
+    },
+    {
+      "id": "trigger-push",
+      "type": "text",
+      "text": "## Push to Master\n**Trigger**: git push origin master\n**Branch**: master\n\n触发 `build.yml` workflow",
+      "x": -300,
+      "y": -500,
+      "width": 250,
+      "height": 150,
+      "color": "4"
+    },
+    {
+      "id": "trigger-tag",
+      "type": "text",
+      "text": "## Git Tag\n**Trigger**: git push origin v1.2.3\n**Pattern**: v*.*.*\n\n触发 `release.yml` workflow",
+      "x": 100,
+      "y": -500,
+      "width": 250,
+      "height": 150,
+      "color": "4"
+    },
+    {
+      "id": "static-section",
+      "type": "text",
+      "text": "# Static Architecture\n系统组件架构",
+      "x": -400,
+      "y": -280,
+      "width": 800,
+      "height": 60,
+      "color": "1"
+    },
+    {
+      "id": "workflow-pr-check",
+      "type": "text",
+      "text": "## PR Check Workflow\n**File**: `.github/workflows/pr-check.yml`\n\n**职责**: 快速验证代码质量\n\n**关键 Jobs**:\n- test-backend\n- test-frontend\n- lint-backend\n- lint-frontend\n- build-validation\n- security-scan",
+      "x": -700,
+      "y": -180,
+      "width": 300,
+      "height": 280,
+      "color": "2"
+    },
+    {
+      "id": "workflow-build",
+      "type": "text",
+      "text": "## Build & Push Workflow\n**File**: `.github/workflows/build.yml`\n\n**职责**: 构建并发布开发版本镜像\n\n**关键 Jobs**:\n- test (reusable)\n- build-backend\n- build-frontend\n- security-scan\n- push-images\n\n**输出**: latest, master-{sha} 镜像",
+      "x": -350,
+      "y": -180,
+      "width": 300,
+      "height": 280,
+      "color": "2"
+    },
+    {
+      "id": "workflow-release",
+      "type": "text",
+      "text": "## Release Workflow\n**File**: `.github/workflows/release.yml`\n\n**职责**: 发布生产版本\n\n**关键 Jobs**:\n- validate-tag\n- test (reusable)\n- build-multi-arch\n- security-scan\n- create-release\n\n**输出**: 版本镜像 + GitHub Release",
+      "x": 100,
+      "y": -180,
+      "width": 300,
+      "height": 280,
+      "color": "2"
+    },
+    {
+      "id": "reusable-test",
+      "type": "text",
+      "text": "## Reusable Test Workflow\n**File**: `.github/workflows/test-reusable.yml`\n\n**职责**: 可重用的测试逻辑\n\n**Steps**:\n- Checkout code\n- Setup Node.js\n- Cache dependencies\n- Run unit tests\n- Run E2E tests\n- Upload test reports",
+      "x": -350,
+      "y": 180,
+      "width": 300,
+      "height": 240,
+      "color": "4"
+    },
+    {
+      "id": "action-setup-node",
+      "type": "text",
+      "text": "## Composite Action: Setup Node\n**Path**: `.github/actions/setup-node-cache`\n\n**职责**: Node.js 环境设置 + 缓存\n\n**Steps**:\n- Setup Node.js 20\n- Restore npm cache\n- Install dependencies\n- Save npm cache",
+      "x": 450,
+      "y": -180,
+      "width": 280,
+      "height": 220,
+      "color": "4"
+    },
+    {
+      "id": "ghcr",
+      "type": "text",
+      "text": "## GitHub Container Registry\n**URL**: ghcr.io/{owner}/{repo}\n\n**镜像仓库**:\n- xxljob-enhance-backend\n- xxljob-enhance-frontend\n\n**标签策略**:\n- latest (master 分支)\n- master-{sha} (开发版)\n- {version} (生产版)\n- {major}.{minor}\n- {major}",
+      "x": -700,
+      "y": 180,
+      "width": 300,
+      "height": 280,
+      "color": "3"
+    },
+    {
+      "id": "trivy",
+      "type": "text",
+      "text": "## Trivy Security Scanner\n**Action**: aquasecurity/trivy-action\n\n**职责**: 镜像安全扫描\n\n**输出**:\n- SARIF 格式报告\n- GitHub Security 集成\n- 漏洞等级: CRITICAL, HIGH, MEDIUM",
+      "x": 100,
+      "y": 180,
+      "width": 300,
+      "height": 200,
+      "color": "5"
+    },
+    {
+      "id": "github-releases",
+      "type": "text",
+      "text": "## GitHub Releases\n**URL**: github.com/{owner}/{repo}/releases\n\n**职责**: 版本发布管理\n\n**包含**:\n- Release notes\n- CHANGELOG.md\n- Checksums\n- 版本标签",
+      "x": 450,
+      "y": 180,
+      "width": 280,
+      "height": 200,
+      "color": "3"
+    },
+    {
+      "id": "dynamic-section",
+      "type": "text",
+      "text": "# Dynamic Flow\nPR Check 工作流程",
+      "x": 850,
+      "y": -600,
+      "width": 950,
+      "height": 60,
+      "color": "1"
+    },
+    {
+      "id": "flow-pr-1",
+      "type": "text",
+      "text": "### 1. PR Created\n开发者创建 Pull Request",
+      "x": 850,
+      "y": -500,
+      "width": 200,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "flow-pr-2",
+      "type": "text",
+      "text": "### 2. Checkout Code\nactions/checkout@v4\n\n检出 PR 分支代码",
+      "x": 1100,
+      "y": -500,
+      "width": 200,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "flow-pr-3",
+      "type": "text",
+      "text": "### 3. Run Tests\n并行执行:\n- Backend tests\n- Frontend tests\n- Lint checks",
+      "x": 1350,
+      "y": -500,
+      "width": 200,
+      "height": 120,
+      "color": "2"
+    },
+    {
+      "id": "flow-pr-4",
+      "type": "text",
+      "text": "### 4. Build Validation\n构建 Docker 镜像\n（不推送）",
+      "x": 1600,
+      "y": -500,
+      "width": 200,
+      "height": 100,
+      "color": "2"
+    },
+    {
+      "id": "flow-pr-5",
+      "type": "text",
+      "text": "### 5. Security Scan\nTrivy 扫描镜像\n生成 SARIF 报告",
+      "x": 850,
+      "y": -340,
+      "width": 200,
+      "height": 100,
+      "color": "5"
+    },
+    {
+      "id": "flow-pr-6",
+      "type": "text",
+      "text": "### 6. Report Results\n✅ All checks passed\n或\n❌ Show failures",
+      "x": 1100,
+      "y": -340,
+      "width": 200,
+      "height": 100,
+      "color": "4"
+    },
+    {
+      "id": "dynamic-section-2",
+      "type": "text",
+      "text": "# Dynamic Flow\nBuild & Release 工作流程",
+      "x": 850,
+      "y": -180,
+      "width": 950,
+      "height": 60,
+      "color": "1"
+    },
+    {
+      "id": "flow-build-1",
+      "type": "text",
+      "text": "### 1. Push to Master\ngit push origin master\n或\ngit push origin v1.2.3",
+      "x": 850,
+      "y": -80,
+      "width": 200,
+      "height": 120,
+      "color": "4"
+    },
+    {
+      "id": "flow-build-2",
+      "type": "text",
+      "text": "### 2. Run Tests\n调用 reusable workflow\n完整测试套件",
+      "x": 1100,
+      "y": -80,
+      "width": 200,
+      "height": 100,
+      "color": "2"
+    },
+    {
+      "id": "flow-build-3",
+      "type": "text",
+      "text": "### 3. Build Images\n并行构建:\n- Backend (amd64)\n- Frontend (amd64)",
+      "x": 1350,
+      "y": -80,
+      "width": 200,
+      "height": 120,
+      "color": "2"
+    },
+    {
+      "id": "flow-build-4",
+      "type": "text",
+      "text": "### 4. Scan & Push\nTrivy 扫描\n↓\n推送到 ghcr.io",
+      "x": 1600,
+      "y": -80,
+      "width": 200,
+      "height": 100,
+      "color": "3"
+    },
+    {
+      "id": "flow-build-5",
+      "type": "text",
+      "text": "### 5. Create Release\n(仅 tag 触发)\n生成 GitHub Release",
+      "x": 850,
+      "y": 80,
+      "width": 200,
+      "height": 100,
+      "color": "3"
+    },
+    {
+      "id": "flow-build-6",
+      "type": "text",
+      "text": "### 6. Notify Success\n✅ Images available:\nghcr.io/.../backend:latest\nghcr.io/.../frontend:latest",
+      "x": 1100,
+      "y": 80,
+      "width": 250,
+      "height": 120,
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "fromNode": "trigger-pr",
+      "fromSide": "bottom",
+      "toNode": "workflow-pr-check",
+      "toSide": "top",
+      "label": "Trigger: pull_request"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "trigger-push",
+      "fromSide": "bottom",
+      "toNode": "workflow-build",
+      "toSide": "top",
+      "label": "Trigger: push (master)"
+    },
+    {
+      "id": "edge-3",
+      "fromNode": "trigger-tag",
+      "fromSide": "bottom",
+      "toNode": "workflow-release",
+      "toSide": "top",
+      "label": "Trigger: push (tags)"
+    },
+    {
+      "id": "edge-4",
+      "fromNode": "workflow-build",
+      "fromSide": "bottom",
+      "toNode": "reusable-test",
+      "toSide": "top",
+      "label": "Call: test workflow"
+    },
+    {
+      "id": "edge-5",
+      "fromNode": "workflow-release",
+      "fromSide": "bottom",
+      "toNode": "reusable-test",
+      "toSide": "top",
+      "label": "Call: test workflow"
+    },
+    {
+      "id": "edge-6",
+      "fromNode": "workflow-pr-check",
+      "fromSide": "right",
+      "toNode": "action-setup-node",
+      "toSide": "left",
+      "label": "Uses: composite action"
+    },
+    {
+      "id": "edge-7",
+      "fromNode": "workflow-build",
+      "fromSide": "right",
+      "toNode": "action-setup-node",
+      "toSide": "left",
+      "label": "Uses: composite action"
+    },
+    {
+      "id": "edge-8",
+      "fromNode": "workflow-build",
+      "fromSide": "bottom",
+      "toNode": "ghcr",
+      "toSide": "top",
+      "label": "Action: push images"
+    },
+    {
+      "id": "edge-9",
+      "fromNode": "workflow-release",
+      "fromSide": "bottom",
+      "toNode": "ghcr",
+      "toSide": "top",
+      "label": "Action: push versioned images"
+    },
+    {
+      "id": "edge-10",
+      "fromNode": "workflow-pr-check",
+      "fromSide": "bottom",
+      "toNode": "trivy",
+      "toSide": "top",
+      "label": "Action: scan image"
+    },
+    {
+      "id": "edge-11",
+      "fromNode": "workflow-build",
+      "fromSide": "bottom",
+      "toNode": "trivy",
+      "toSide": "top",
+      "label": "Action: scan before push"
+    },
+    {
+      "id": "edge-12",
+      "fromNode": "workflow-release",
+      "fromSide": "right",
+      "toNode": "github-releases",
+      "toSide": "left",
+      "label": "Action: create release"
+    },
+    {
+      "id": "edge-13",
+      "fromNode": "flow-pr-1",
+      "fromSide": "right",
+      "toNode": "flow-pr-2",
+      "toSide": "left",
+      "label": "Signal: pull_request event"
+    },
+    {
+      "id": "edge-14",
+      "fromNode": "flow-pr-2",
+      "fromSide": "right",
+      "toNode": "flow-pr-3",
+      "toSide": "left",
+      "label": "Action: checkout complete"
+    },
+    {
+      "id": "edge-15",
+      "fromNode": "flow-pr-3",
+      "fromSide": "right",
+      "toNode": "flow-pr-4",
+      "toSide": "left",
+      "label": "Action: tests passed"
+    },
+    {
+      "id": "edge-16",
+      "fromNode": "flow-pr-4",
+      "fromSide": "bottom",
+      "toNode": "flow-pr-5",
+      "toSide": "top",
+      "label": "Action: build complete"
+    },
+    {
+      "id": "edge-17",
+      "fromNode": "flow-pr-5",
+      "fromSide": "right",
+      "toNode": "flow-pr-6",
+      "toSide": "left",
+      "label": "Action: scan complete"
+    },
+    {
+      "id": "edge-18",
+      "fromNode": "flow-build-1",
+      "fromSide": "right",
+      "toNode": "flow-build-2",
+      "toSide": "left",
+      "label": "Signal: push event"
+    },
+    {
+      "id": "edge-19",
+      "fromNode": "flow-build-2",
+      "fromSide": "right",
+      "toNode": "flow-build-3",
+      "toSide": "left",
+      "label": "Action: tests passed"
+    },
+    {
+      "id": "edge-20",
+      "fromNode": "flow-build-3",
+      "fromSide": "right",
+      "toNode": "flow-build-4",
+      "toSide": "left",
+      "label": "Action: images built"
+    },
+    {
+      "id": "edge-21",
+      "fromNode": "flow-build-4",
+      "fromSide": "bottom",
+      "toNode": "flow-build-5",
+      "toSide": "top",
+      "label": "Action: if tag push"
+    },
+    {
+      "id": "edge-22",
+      "fromNode": "flow-build-5",
+      "fromSide": "right",
+      "toNode": "flow-build-6",
+      "toSide": "left",
+      "label": "Action: release created"
+    }
+  ]
+}

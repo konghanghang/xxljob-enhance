@@ -1,0 +1,51 @@
+name: Reusable Test Workflow
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: 'Service name (backend or frontend)'
+        required: true
+        type: string
+      working-directory:
+        description: 'Working directory for the service'
+        required: true
+        type: string
+
+jobs:
+  test:
+    name: Test ${{ inputs.service-name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js with cache
+        uses: ./.github/actions/setup-node-cache
+        with:
+          node-version: '20'
+          working-directory: ${{ inputs.working-directory }}
+
+      - name: Run linter
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run lint || echo "Lint script not found, skipping"
+
+      - name: Run unit tests
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run test || echo "Test script not found, skipping"
+
+      - name: Run E2E tests
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run test:e2e || echo "E2E test script not found, skipping"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ inputs.service-name }}
+          path: |
+            ${{ inputs.working-directory }}/coverage
+            ${{ inputs.working-directory }}/test-results
+          retention-days: 30

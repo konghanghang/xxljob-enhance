@@ -6,6 +6,11 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
 [![Docker](https://img.shields.io/badge/docker-%3E%3D20.10-blue)](https://www.docker.com)
 
+[![Build and Push](https://github.com/YOUR_USERNAME/xxljob-enhance/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/xxljob-enhance/actions/workflows/build.yml)
+[![PR Check](https://github.com/YOUR_USERNAME/xxljob-enhance/actions/workflows/pr-check.yml/badge.svg)](https://github.com/YOUR_USERNAME/xxljob-enhance/actions/workflows/pr-check.yml)
+[![Release](https://github.com/YOUR_USERNAME/xxljob-enhance/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/xxljob-enhance/actions/workflows/release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/YOUR_USERNAME/xxljob-enhance)](https://github.com/YOUR_USERNAME/xxljob-enhance/releases/latest)
+
 ---
 
 ## 📖 项目简介
