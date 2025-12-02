@@ -8,6 +8,7 @@ import type {
   CreateUserRequest,
   UpdateUserRequest,
   AssignRolesRequest,
+  ResetPasswordRequest,
   UserRoleAssignment,
   RoleInfo,
   CreateRoleRequest,
@@ -71,6 +72,9 @@ export const usersApi = {
 
   removeRole: (userId: number, roleId: number) =>
     apiClient.delete(`/users/${userId}/roles/${roleId}`),
+
+  resetPassword: (id: number, data: ResetPasswordRequest) =>
+    apiClient.patch(`/users/${id}/password`, data),
 };
 
 // ============ Roles API ============

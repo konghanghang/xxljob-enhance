@@ -344,4 +344,27 @@ export class UsersService {
       throw new NotFoundException(`User does not have role with ID ${roleId}`);
     }
   }
+
+  /**
+   * Reset a user's password
+   * @param userId - User ID
+   * @param newPassword - New password (will be hashed)
+   * @param resetBy - ID of admin performing the reset
+   */
+  async resetPassword(userId: number, newPassword: string, resetBy?: number): Promise<void> {
+    // Check if user exists
+    const user = await this.findOne(userId);
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the password
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    // Log the password reset action (optional: could be enhanced with audit logging)
+    // For now, we just complete the operation
+  }
 }

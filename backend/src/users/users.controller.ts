@@ -11,7 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto, UserResponseDto, AssignRolesDto } from './dto';
+import { CreateUserDto, UpdateUserDto, UserResponseDto, AssignRolesDto, ResetPasswordDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../permissions/guards/admin.guard';
 import { RequireAdmin } from '../permissions/decorators/require-admin.decorator';
@@ -147,5 +147,20 @@ export class UsersController {
   ): Promise<{ message: string }> {
     await this.usersService.removeRole(userId, roleId);
     return { message: `Role ${roleId} removed from user ${userId}` };
+  }
+
+  /**
+   * PATCH /users/:id/password
+   * Reset a user's password (admin only)
+   */
+  @RequireAdmin()
+  @Patch(':id/password')
+  async resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @CurrentUser() currentUser: any,
+  ): Promise<{ message: string }> {
+    await this.usersService.resetPassword(id, resetPasswordDto.newPassword, currentUser.id);
+    return { message: `Password reset successfully for user ${id}` };
   }
 }

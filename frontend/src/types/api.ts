@@ -53,6 +53,10 @@ export interface AssignRolesRequest {
   roleIds: number[];
 }
 
+export interface ResetPasswordRequest {
+  newPassword: string;
+}
+
 export interface UserRoleAssignment {
   role: RoleInfo;
   assignedAt: string;

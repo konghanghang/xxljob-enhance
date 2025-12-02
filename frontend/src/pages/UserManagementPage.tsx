@@ -12,6 +12,7 @@ import {
   Popconfirm,
   Select,
   Typography,
+  App,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -19,6 +20,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   TeamOutlined,
+  KeyOutlined,
 } from '@ant-design/icons';
 import { usersApi, rolesApi } from '../api/services';
 import type { UserInfo, RoleInfo } from '../types/api';
@@ -32,17 +34,20 @@ const { Title } = Typography;
  */
 
 const UserManagementPage: React.FC = () => {
+  const { message: messageApi } = App.useApp();
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [roles, setRoles] = useState<RoleInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [rolesModalVisible, setRolesModalVisible] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
   const [userRoles, setUserRoles] = useState<number[]>([]);
   const [form] = Form.useForm();
   const [rolesForm] = Form.useForm();
+  const [passwordForm] = Form.useForm();
 
   useEffect(() => {
     fetchUsers();
@@ -56,7 +61,7 @@ const UserManagementPage: React.FC = () => {
       const response = await usersApi.getAll();
       setUsers(response.data);
     } catch (error: any) {
-      message.error('Failed to load users: ' + (error.response?.data?.message || error.message));
+      messageApi.error('Failed to load users: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
@@ -67,7 +72,7 @@ const UserManagementPage: React.FC = () => {
       const response = await rolesApi.getAll();
       setRoles(response.data);
     } catch (error: any) {
-      message.error('Failed to load roles: ' + (error.response?.data?.message || error.message));
+      messageApi.error('Failed to load roles: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -109,7 +114,7 @@ const UserManagementPage: React.FC = () => {
       console.log('🚪 Opening modal with values:', userRoleIds);
       setRolesModalVisible(true);
     } catch (error: any) {
-      message.error('Failed to load user roles: ' + (error.response?.data?.message || error.message));
+      messageApi.error('Failed to load user roles: ' + (error.response?.data?.message || error.message));
     } finally {
       setRolesLoading(false);
     }
@@ -122,11 +127,11 @@ const UserManagementPage: React.FC = () => {
       if (editingUser) {
         // Update user
         await usersApi.update(editingUser.id, values);
-        message.success('User updated successfully');
+        messageApi.success('User updated successfully');
       } else {
         // Create user
         await usersApi.create(values);
-        message.success('User created successfully');
+        messageApi.success('User created successfully');
       }
 
       setModalVisible(false);
@@ -134,7 +139,7 @@ const UserManagementPage: React.FC = () => {
       fetchUsers();
     } catch (error: any) {
       if (error.response) {
-        message.error('Operation failed: ' + (error.response?.data?.message || error.message));
+        messageApi.error('Operation failed: ' + (error.response?.data?.message || error.message));
       }
     }
   };
@@ -147,21 +152,43 @@ const UserManagementPage: React.FC = () => {
       await usersApi.assignRoles(selectedUser.id, {
         roleIds: values.roleIds || [],
       });
-      message.success('User roles updated successfully');
+      messageApi.success('User roles updated successfully');
       setRolesModalVisible(false);
       rolesForm.resetFields();
     } catch (error: any) {
-      message.error('Failed to update roles: ' + (error.response?.data?.message || error.message));
+      messageApi.error('Failed to update roles: ' + (error.response?.data?.message || error.message));
     }
   };
 
   const handleDelete = async (user: UserInfo) => {
     try {
       await usersApi.remove(user.id);
-      message.success('User deactivated successfully');
+      messageApi.success('User deactivated successfully');
       fetchUsers();
     } catch (error: any) {
-      message.error('Failed to deactivate user: ' + (error.response?.data?.message || error.message));
+      messageApi.error('Failed to deactivate user: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleResetPassword = (user: UserInfo) => {
+    setSelectedUser(user);
+    passwordForm.resetFields();
+    setPasswordModalVisible(true);
+  };
+
+  const handlePasswordModalOk = async () => {
+    if (!selectedUser) return;
+
+    try {
+      const values = await passwordForm.validateFields();
+      await usersApi.resetPassword(selectedUser.id, {
+        newPassword: values.newPassword,
+      });
+      messageApi.success(`Password reset successfully for user "${selectedUser.username}"`);
+      setPasswordModalVisible(false);
+      passwordForm.resetFields();
+    } catch (error: any) {
+      messageApi.error('Failed to reset password: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -236,6 +263,14 @@ const UserManagementPage: React.FC = () => {
             onClick={() => handleManageRoles(record)}
           >
             Roles
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<KeyOutlined />}
+            onClick={() => handleResetPassword(record)}
+          >
+            Reset Pwd
           </Button>
           {record.isActive && (
             <Popconfirm
@@ -375,6 +410,48 @@ const UserManagementPage: React.FC = () => {
                 value: role.id,
               }))}
             />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`Reset Password for ${selectedUser?.username}`}
+        open={passwordModalVisible}
+        onOk={handlePasswordModalOk}
+        onCancel={() => {
+          setPasswordModalVisible(false);
+          passwordForm.resetFields();
+        }}
+        okText="Reset Password"
+      >
+        <Form form={passwordForm} layout="vertical">
+          <Form.Item
+            label="New Password"
+            name="newPassword"
+            rules={[
+              { required: true, message: 'Please input new password!' },
+              { min: 6, message: 'Password must be at least 6 characters' },
+            ]}
+          >
+            <Input.Password placeholder="Enter new password (min 6 characters)" />
+          </Form.Item>
+          <Form.Item
+            label="Confirm Password"
+            name="confirmPassword"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: 'Please confirm the password!' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Passwords do not match!'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Confirm new password" />
           </Form.Item>
         </Form>
       </Modal>
