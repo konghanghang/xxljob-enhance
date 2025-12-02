@@ -51,4 +51,3 @@ logs
 # Misc
 .prettierrc
 .eslintrc.js
-tsconfig.json
