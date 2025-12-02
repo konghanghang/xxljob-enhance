@@ -8,15 +8,14 @@ import {
   Button,
   Typography,
   message,
-  Modal,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EyeOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
 import { jobsApi } from '../api/services';
 import type { XxlJobLog, JobGroup } from '../types/api';
 import dayjs from 'dayjs';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 /**
  * Job Logs Page Component
@@ -33,10 +32,6 @@ const JobLogsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 20, total: 0 });
-  const [logDetailModal, setLogDetailModal] = useState<{ visible: boolean; log: any }>({
-    visible: false,
-    log: null,
-  });
 
   // Initialize from URL params
   useEffect(() => {
@@ -122,15 +117,6 @@ const JobLogsPage: React.FC = () => {
     }
   };
 
-  const handleViewDetail = async (log: XxlJobLog) => {
-    try {
-      const response = await jobsApi.getLogDetail(log.jobId, log.id);
-      setLogDetailModal({ visible: true, log: response.data });
-    } catch (error: any) {
-      message.error('Failed to load log detail: ' + (error.response?.data?.message || error.message));
-    }
-  };
-
   const getStatusTag = (code: number) => {
     if (code === 200) return <Tag color="success">Success</Tag>;
     if (code === 500) return <Tag color="error">Failed</Tag>;
@@ -193,22 +179,6 @@ const JobLogsPage: React.FC = () => {
       key: 'handleCode',
       width: 120,
       render: (code: number) => (code ? getStatusTag(code) : '-'),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: 100,
-      fixed: 'right',
-      render: (_, record) => (
-        <Button
-          type="link"
-          size="small"
-          icon={<EyeOutlined />}
-          onClick={() => handleViewDetail(record)}
-        >
-          Detail
-        </Button>
-      ),
     },
   ];
 
@@ -273,40 +243,6 @@ const JobLogsPage: React.FC = () => {
         }}
         scroll={{ x: 1200 }}
       />
-
-      <Modal
-        title="Log Detail"
-        open={logDetailModal.visible}
-        onCancel={() => setLogDetailModal({ visible: false, log: null })}
-        footer={[
-          <Button
-            key="close"
-            onClick={() => setLogDetailModal({ visible: false, log: null })}
-          >
-            Close
-          </Button>,
-        ]}
-        width={800}
-      >
-        {logDetailModal.log && (
-          <div>
-            <Paragraph>
-              <strong>Trigger Message:</strong>
-              <br />
-              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {logDetailModal.log.triggerMsg || 'N/A'}
-              </pre>
-            </Paragraph>
-            <Paragraph>
-              <strong>Handle Message:</strong>
-              <br />
-              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                {logDetailModal.log.handleMsg || 'N/A'}
-              </pre>
-            </Paragraph>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 };

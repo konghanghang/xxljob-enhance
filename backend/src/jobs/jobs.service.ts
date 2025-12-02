@@ -365,7 +365,26 @@ export class JobsService {
       throw new ForbiddenException(`You do not have permission to view logs for job ${jobId}`);
     }
 
-    return this.xxlJobService.getLogDetail(logId, fromLineNum);
+    // Get job info to obtain jobGroup
+    const jobInfo = await this.xxlJobService.getJobInfo(jobId);
+
+    // Get the log entry to obtain triggerTime
+    const logs = await this.xxlJobService.getJobLogs({
+      jobGroup: jobInfo.jobGroup,
+      jobId,
+      start: 0,
+      length: 1000, // Get enough logs to find the target log
+    });
+
+    const logEntry = logs.data.find((log) => log.id === logId);
+    if (!logEntry) {
+      throw new NotFoundException(`Log ${logId} not found`);
+    }
+
+    // Parse triggerTime from ISO string to timestamp
+    const triggerTime = logEntry.triggerTime ? new Date(logEntry.triggerTime).getTime() : 0;
+
+    return this.xxlJobService.getLogDetail(logId, fromLineNum, triggerTime);
   }
 
   /**

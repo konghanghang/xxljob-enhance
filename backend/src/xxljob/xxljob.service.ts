@@ -366,25 +366,46 @@ export class XxlJobService implements OnModuleInit {
    * Get detailed log content
    * @param logId - Log ID
    * @param fromLineNum - Start line number for incremental loading
+   * @param triggerTime - Trigger time timestamp (required by XXL-Job API)
    */
-  async getLogDetail(logId: number, fromLineNum: number = 0): Promise<any> {
-    const params = new URLSearchParams();
-    params.append('logId', logId.toString());
-    params.append('fromLineNum', fromLineNum.toString());
+  async getLogDetail(logId: number, fromLineNum: number = 0, triggerTime: number = 0): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      params.append('logId', logId.toString());
+      params.append('fromLineNum', fromLineNum.toString());
+      params.append('triggerTime', triggerTime.toString());
 
-    const response = await this.axiosInstance.post<XxlJobApiResponse>(
-      '/joblog/logDetailCat',
-      params,
-      {
-        headers: { Cookie: this.cookie },
-      },
-    );
+      const response = await this.axiosInstance.post<XxlJobApiResponse>(
+        '/joblog/logDetailCat',
+        params,
+        {
+          headers: { Cookie: this.cookie },
+        },
+      );
 
-    if (response.data.code !== 200) {
-      throw new HttpException(response.data.msg || 'Failed to get log detail', 500);
+      if (response.data.code !== 200) {
+        this.logger.error('XXL-Job API returned error for log detail', {
+          logId,
+          fromLineNum,
+          triggerTime,
+          responseCode: response.data.code,
+          responseMsg: response.data.msg,
+        });
+        throw new HttpException(response.data.msg || 'Failed to get log detail', 500);
+      }
+
+      return response.data.content;
+    } catch (error: any) {
+      this.logger.error('Failed to get log detail', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        logId,
+        fromLineNum,
+        triggerTime,
+      });
+      throw new HttpException(error.message || 'Failed to get log detail', 500);
     }
-
-    return response.data.content;
   }
 
   /**

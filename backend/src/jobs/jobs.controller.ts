@@ -165,7 +165,7 @@ export class JobsController {
     @CurrentUser() user: any,
     @Param('jobId', ParseIntPipe) jobId: number,
     @Param('logId', ParseIntPipe) logId: number,
-    @Query('fromLineNum', ParseIntPipe) fromLineNum?: number,
+    @Query('fromLineNum', new ParseIntPipe({ optional: true })) fromLineNum?: number,
   ) {
     return this.jobsService.getLogDetail(user.id, jobId, logId, fromLineNum || 0);
   }
