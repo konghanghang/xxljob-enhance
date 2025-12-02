@@ -3,10 +3,7 @@ version: '3.8'
 services:
   # Backend Service
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/konghanghang/xxljob-enhance/backend:latest
     container_name: xxljob-enhance-backend
     restart: unless-stopped
     ports:
@@ -47,10 +44,7 @@ services:
 
   # Frontend Service
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: production
+    image: ghcr.io/konghanghang/xxljob-enhance/frontend:latest
     container_name: xxljob-enhance-frontend
     restart: unless-stopped
     ports:
