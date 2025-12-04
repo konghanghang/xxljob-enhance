@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   # Backend Service
   backend:
-    image: ghcr.io/konghanghang/xxljob-enhance-backend:latest
+    image: xxljob-enhance-backend:latest
     container_name: xxljob-enhance-backend
     restart: unless-stopped
     ports:
@@ -13,14 +11,14 @@ services:
       DATABASE_URL: file:/app/data/prod.db
 
       # JWT Configuration
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-minimum-32-characters-required}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-1h}
       JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-7d}
 
       # XXL-Job Admin Configuration
-      XXL_JOB_ADMIN_URL: ${XXL_JOB_ADMIN_URL:-http://localhost:8080/xxl-job-admin}
-      XXL_JOB_ADMIN_USERNAME: ${XXL_JOB_ADMIN_USERNAME:-admin}
-      XXL_JOB_ADMIN_PASSWORD: ${XXL_JOB_ADMIN_PASSWORD:-123456}
+      XXL_JOB_ADMIN_URL: ${XXL_JOB_ADMIN_URL}
+      XXL_JOB_USERNAME: ${XXL_JOB_ADMIN_USERNAME}
+      XXL_JOB_PASSWORD: ${XXL_JOB_ADMIN_PASSWORD}
 
       # Application Configuration
       NODE_ENV: production
@@ -28,11 +26,15 @@ services:
 
       # CORS Configuration
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+
+      # Default Admin User Configuration
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin123}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL}
+      DATABASE_SEED: ${DATABASE_SEED:-true}
     volumes:
       # Persist SQLite database
-      - sqlite-data:/app/data
-      # Persist Prisma migrations history
-      - ./backend/prisma/migrations:/app/prisma/migrations:ro
+      - ./data:/app/data
     networks:
       - xxljob-enhance-network
     healthcheck:
@@ -44,27 +46,21 @@ services:
 
   # Frontend Service
   frontend:
-    image: ghcr.io/konghanghang/xxljob-enhance-frontend:latest
+    image: xxljob-enhance-frontend:latest
     container_name: xxljob-enhance-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "41080:80"
     depends_on:
       - backend
     networks:
       - xxljob-enhance-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
-
-# Named volumes for data persistence
-volumes:
-  sqlite-data:
-    driver: local
-    name: xxljob-enhance-sqlite-data
 
 # Custom network
 networks:
