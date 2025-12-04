@@ -335,72 +335,95 @@ docker compose logs -f
 
 ---
 
-## 初始化管理员账号
+## 默认管理员账号
 
-系统首次启动后，需要手动创建初始管理员账号。
+系统首次启动时会**自动创建**默认管理员账号，无需手动初始化。
 
-### 方法 1：使用 Prisma Studio（推荐）
+### 默认凭据
 
-1. 进入后端容器：
-```bash
-docker compose exec backend sh
+```
+用户名: admin
+密码: admin123
+邮箱: admin@example.com
 ```
 
-2. 启动 Prisma Studio：
+**⚠️ 安全警告：生产环境部署后，请立即登录并修改默认密码！**
+
+### 自定义默认管理员
+
+在首次启动前，可以通过环境变量自定义默认管理员信息：
+
 ```bash
-npx prisma studio
+# 在 .env 文件中配置
+DEFAULT_ADMIN_USERNAME=myadmin
+DEFAULT_ADMIN_PASSWORD=MySecurePassword123!
+DEFAULT_ADMIN_EMAIL=admin@mycompany.com
 ```
 
-3. 在浏览器中打开 http://localhost:5555
+### 禁用自动初始化
 
-4. 创建管理员用户：
-   - 点击 `User` 表
-   - 点击 `Add record`
-   - 填写信息：
-     - `username`: `admin`
-     - `password`: 使用 bcrypt 加密的密码（见下方）
-     - `isAdmin`: `true`
-     - `isActive`: `true`
+如果不需要自动创建管理员（例如：恢复备份数据），可以禁用：
 
-### 方法 2：直接使用 SQL
-
-1. 生成 bcrypt 密码哈希：
 ```bash
-# 在容器内运行
-docker compose exec backend node -e "const bcrypt = require('bcrypt'); bcrypt.hash('admin123', 10).then(console.log)"
+# 在 .env 文件中设置
+DATABASE_SEED=false
 ```
 
-2. 进入容器：
+### 查看初始化日志
+
+查看管理员是否成功创建：
+
 ```bash
-docker compose exec backend sh
+docker compose logs backend | grep -i "seeding\|admin"
 ```
 
-3. 执行 SQL：
-```bash
-sqlite3 /app/data/prod.db <<EOF
-INSERT INTO User (username, password, isAdmin, isActive, createdAt, updatedAt)
-VALUES (
-  'admin',
-  '生成的bcrypt哈希值',
-  1,
-  1,
-  datetime('now'),
-  datetime('now')
-);
-EOF
+**预期输出：**
+```
+[DatabaseSeederService] Starting database seeding...
+[DatabaseSeederService] Creating default admin user: admin
+[DatabaseSeederService] ✅ Default admin user created successfully (ID: 1)
+[DatabaseSeederService] ⚠️  Default credentials - Username: admin, Password: admin123
+[DatabaseSeederService] ✅ Created role: Admin
+[DatabaseSeederService] ✅ Created role: Developer
+[DatabaseSeederService] ✅ Created role: Viewer
+[DatabaseSeederService] Database seeding completed successfully
 ```
 
-### 方法 3：使用 API 创建（如果已有管理员）
+### 创建额外的管理员账号（可选）
+
+如果需要创建更多管理员，可以通过 API：
 
 ```bash
+# 1. 先用默认管理员登录获取 token
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' | jq -r '.accessToken')
+
+# 2. 创建新管理员
 curl -X POST http://localhost:3000/users \
-  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "newadmin",
     "password": "secure-password",
+    "email": "newadmin@example.com",
     "isAdmin": true
   }'
+```
+
+### 重置管理员密码
+
+如果忘记管理员密码，可以通过数据库重置：
+
+```bash
+# 1. 生成新密码的 bcrypt 哈希
+NEW_HASH=$(docker compose exec backend node -e "const bcrypt = require('bcrypt'); bcrypt.hash('NewPassword123', 10).then(console.log)")
+
+# 2. 进入容器
+docker compose exec backend sh
+
+# 3. 更新密码
+sqlite3 /app/data/prod.db "UPDATE User SET password='$NEW_HASH' WHERE username='admin';"
 ```
 
 ---
