@@ -6,7 +6,10 @@ import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
  * Handles authentication tokens and request/response interceptors
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+// In production, use /api prefix for nginx proxy
+// In development, use full URL to backend
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:3000');
 
 class ApiClient {
   private client: AxiosInstance;
